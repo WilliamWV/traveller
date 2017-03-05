@@ -5,6 +5,25 @@ var sketchProc = function(processingInstance) {
     var FPS = 60;
     size(XDIMENTION, YDIMENTION);
     frameRate(FPS);
+    var SPEED = 2;
+
+    //Possible states within the game
+    var DEAD = 0;
+    var ALIVE = 1;
+    var KILLED = 2;
+    var PAUSED = 3;
+    var WINNER = 4;
+    var GAMEOVER = 5;
+    var WAITTING = 6;
+    var PLAYERSTATE = WAITTING;
+
+    var MESSAGESIZE = 24;
+    var BUTTONWIDTH = XDIMENTION/4;
+    var BUTTONHEIGHT = YDIMENTION/8;
+
+    
+
+
 
 }};
 
