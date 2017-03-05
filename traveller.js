@@ -9,6 +9,9 @@ var sketchProc = function(processingInstance) {
     var ATRITTION = SPEED/FPS;
     var BULLETDELAY = FPS/5;
     var BULLETSPEED = 5;
+    var PLAYERSIZE = XDIMENTION /10;
+    var CANNOONSIZE = XDIMENTION / 15;
+    var BULLETSIZE = PLAYERSIZE/3;
     //Possible states within the game
     var DEAD = 0;
     var ALIVE = 1;
@@ -28,6 +31,7 @@ var sketchProc = function(processingInstance) {
     var BUTTONCOLOR = [72, 0, 114];
     var BUTTONLABEL = [204, 204, 255];
     var MESSAGECOLOR = [255, 255, 255];
+    var SCENECOLLOR = [0, 102, 204];
 
 
     var PLAYERIMAGE = loadImage("../img/Traveller/Player.png");
@@ -45,7 +49,7 @@ var sketchProc = function(processingInstance) {
     };
 
     Bullet.prototype.draw = function(){
-        image(this.img, this.x, this.y);
+        image(this.img, this.x, this.y, BULLETSIZE, BULLETSIZE);
     }
 
     var Player = function(x, y){
@@ -60,7 +64,7 @@ var sketchProc = function(processingInstance) {
         this.heading = 90;
     };
     Player.prototype.draw = function(){
-        image(this.img, this.x, this.y);
+        image(this.img, this.x, this.y, PLAYERSIZE, PLAYERSIZE);
         if(!this.readyToShoot){
             this.delay -= 1;
             if(this.delay <=0){
@@ -91,6 +95,7 @@ var sketchProc = function(processingInstance) {
         fill(BUTTONCOLOR[0], BUTTONCOLOR[1], BUTTONCOLOR[2]);
         rect(this.x, this.y, this.width. this.height);
         noStroke();
+        fill(BUTTONLABEL[0], BUTTONLABEL[1], BUTTONLABEL[2]);
         textAlign(CENTER, CENTER);
         textSize(MESSAGESIZE);
         text(this.label, this.x + this.width/2, this.y + this.height/2);
@@ -135,11 +140,61 @@ var sketchProc = function(processingInstance) {
 
 
     var startScene = function(){
+        background(SCENECOLLOR[0],SCENECOLLOR[1],SCENECOLLOR[2]);
+        STARTBUTTON.draw();
+        fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
+        textAlign(CENTER, CENTER);
+        textSize(2*MESSAGESIZE);
+        text("THE TRAVELLER", XDIMENTION/2, YDIMENTION/3);
+
+        image(PLAYERIMAGE, XDIMENTION * (3/4), YDIMENTION*(2/3), 2*PLAYERSIZE, 2*PLAYERSIZE);
+    };
+
+    var deadScene = function(){
+        background(0);
+        AGAINBUTTON.draw();
+        QUITBUTTON.draw();
+        textAlign(CENTER, CENTER);
+        textSize((3/2)*MESSAGESIZE);
+        text("YOU DEAD!!");
+    };
+
+    var pauseScene = function(){
+        background(SCENECOLLOR[0],SCENECOLLOR[1],SCENECOLLOR[2]);
+
+        PAUSECONTBUTTON.draw();
+        PAUSERESTBUTTON.draw();
+        PAUSEQUITBUTTON.draw();
+
+        fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
+  			textSize(2*MESSAGESIZE);
+  			textAlign(CENTER, CENTER);
+  			text("PAUSE", XDIMENTION/2, (3/2)*BUTTONHEIGHT);
+    };
+
+    var gameOverScene = function(){
+        background(0);
+        CONTINUEBUTTON.draw();
+
+        fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
+  			textSize(2*MESSAGESIZE);
+  			textAlign(CENTER, CENTER);
+  			text("GAME OVER!", XDIMENTION/2, YDIMENTION/3);
 
     };
 
+    var winnerScene = function(){
+      background(SCENECOLLOR[0], SCENECOLLOR[1], SCENECOLLOR[2])
+			CONTINUEBUTTON.draw();
 
-    draw  =function{
+			fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
+			textSize(2*MESSAGESIZE);
+			textAlign(CENTER, CENTER);
+			text("YOU WON", XDIMENTION/2, YDIMENTION/3);
+			
+    };
+
+    draw = function{
         if(PLAYERSTATE === ALIVE){
             gameRunning();
         }
