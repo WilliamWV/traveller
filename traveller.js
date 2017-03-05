@@ -31,13 +31,24 @@ var sketchProc = function(processingInstance) {
     var BUTTONCOLOR = [72, 0, 114];
     var BUTTONLABEL = [204, 204, 255];
     var MESSAGECOLOR = [255, 255, 255];
-    var SCENECOLLOR = [0, 102, 204];
+    var SCENECOLOR = [0, 102, 204];
 
 
     var PLAYERIMAGE = loadImage("../img/Traveller/Player.png");
     var BULLETIMAGE = loadImage("../img/Traveller/Bullet.png");
     var CANNONIMAGE = loadImage("../img/Traveller/Cannon.png");
-
+    var EXPLOSION = [loadImage("../img/Traveller/Explosion/EXPL1.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL2.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL3.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL4.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL5.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL6.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL7.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL8.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL9.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL10.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL11.png"),
+                     loadImage("../img/Traveller/Explosion/EXPL12.png")];
     var bullets = [];
     var input =[];
 
@@ -140,7 +151,7 @@ var sketchProc = function(processingInstance) {
 
 
     var startScene = function(){
-        background(SCENECOLLOR[0],SCENECOLLOR[1],SCENECOLLOR[2]);
+        background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
         STARTBUTTON.draw();
         fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
         textAlign(CENTER, CENTER);
@@ -160,7 +171,7 @@ var sketchProc = function(processingInstance) {
     };
 
     var pauseScene = function(){
-        background(SCENECOLLOR[0],SCENECOLLOR[1],SCENECOLLOR[2]);
+        background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
 
         PAUSECONTBUTTON.draw();
         PAUSERESTBUTTON.draw();
@@ -184,14 +195,14 @@ var sketchProc = function(processingInstance) {
     };
 
     var winnerScene = function(){
-      background(SCENECOLLOR[0], SCENECOLLOR[1], SCENECOLLOR[2])
+      background(SCENECOLOR[0], SCENECOLOR[1], SCENECOLOR[2])
 			CONTINUEBUTTON.draw();
 
 			fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
 			textSize(2*MESSAGESIZE);
 			textAlign(CENTER, CENTER);
 			text("YOU WON", XDIMENTION/2, YDIMENTION/3);
-			
+
     };
 
     draw = function{
