@@ -50,6 +50,10 @@ var sketchProc = function(processingInstance) {
                      loadImage("../img/Traveller/Explosion/EXPL10.png"),
                      loadImage("../img/Traveller/Explosion/EXPL11.png"),
                      loadImage("../img/Traveller/Explosion/EXPL12.png")];
+
+
+    var CAMERARELATIVEX = 0;
+    var CAMERARELATIVEY = 0;
     var bullets = [];
     var input =[];
 
@@ -257,8 +261,20 @@ var sketchProc = function(processingInstance) {
     };
 
     var startGame = function(){
-
+        CAMERARELATIVEY = 0;
+        CAMERARELATIVEX = 0;
+        PLAYERSTATE = ALIVE;
     };
+
+    var disableAllButtons = function(){
+      for(var i = 0; i<BUTTONS.length; i++){
+        BUTTONS[i].isDrawn = false;
+      }
+    };
+
+    var gameRunning = function(){
+        
+    }
     //pre-defined function called always that the user press a key
 		keyPressed = function(){
 			input[keyCode] = true;
