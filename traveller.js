@@ -73,6 +73,7 @@ var sketchProc = function(processingInstance) {
         this.delay = 0;
         //represent the angle headed by the Player
         this.heading = 90;
+        this.i = 0;
     };
     Player.prototype.draw = function(){
         image(this.img, this.x, this.y, PLAYERSIZE, PLAYERSIZE);
@@ -93,7 +94,53 @@ var sketchProc = function(processingInstance) {
         }
 
     };
+    Player.prototype.explode = function(){
+        image(EXPLOSION[this.index], this.x, this.y, PLAYERSIZE, PLAYERSIZE);
+        this.index+=1;
+    };
 
+    var Cannon = function(x, y){
+        this.x = x;
+        this.y = y;
+        this.img = CANNONIMAGE;
+        this.heading = 90;
+        this.readyToShoot = true;
+        this.delay = 0;
+        this.isDrawn = false;
+        this.state = ALIVE;
+        this.index = 0;
+    };
+
+    Cannon.prototype.draw = function(){
+        if(this.state === DEAD){
+            this.explode();
+        }
+        else{
+            image(this.img, this.x, this.y);
+            this.isDrawn = true;
+            if(this.delay>0){
+                this.delay -=1;
+            }
+            if(this.delay <=0){
+                this.readyToShoot = true;
+            }
+        }
+    };
+    Cannon.prototype.shoot = function(){
+        if(this.isDrawn && this.readyToShoot){
+            this.readyToShoot = false;
+            this.delay = BULLETDELAY;
+            var bullet = new Bullet(this.x, this.y, this.heading);
+            bullets[bullets.length] = bullet;
+        }
+    };
+
+    Cannon.prototype.explode = function(){
+      image(EXPLOSION[this.index], this.x, this.y, PLAYERSIZE, PLAYERSIZE);
+      this.index+=1;
+    };
+
+    
     var Button = function(x, y, label, widht, height){
           this.x = x;
           this.y = y;
@@ -149,6 +196,7 @@ var sketchProc = function(processingInstance) {
 
 		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON];
 
+    var player = new Player(XDIMENTION/2,YDIMENTION/2);
 
     var startScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
