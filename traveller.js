@@ -74,6 +74,37 @@ var sketchProc = function(processingInstance) {
 
 
 
+    draw  =function{
+        if(PLAYERSTATE === ALIVE){
+            gameRunning();
+        }
+        else if(PLAYERSTATE === DEAD){
+            deadScene();
+        }
+        else if(PLAYERSTATE === WAITTING){
+            startScene();
+        }
+        else if(PLAYERSTATE === KILLED){
+            player.explode();
+        }
+        else if(PLAYERSTATE === PAUSED){
+            pauseScene();
+
+        }
+        else if(PLAYERSTATE === WINNER){
+            winnerScene();
+        }
+        else if(PLAYERSTATE === GAMEOVER){
+            gameOverScene();
+        }
+        else {
+          PLAYERSTATE = WAITTING;
+        }
+
+    };
+
+
+
 }};
 
 // Get the canvas that Processing-js will use
