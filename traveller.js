@@ -6,7 +6,7 @@ var sketchProc = function(processingInstance) {
     size(XDIMENTION, YDIMENTION);
     frameRate(FPS);
     var SPEED = 2;
-    var ATRITTION = 1;
+    var ATRITTION = SPEED/FPS;
     var BULLETDELAY = FPS/5;
     var BULLETSPEED = 5;
     //Possible states within the game
@@ -30,11 +30,16 @@ var sketchProc = function(processingInstance) {
     var bullets = [];
     var input =[];
 
-    var Bullet = function(x, y, xSpeed, ySpeed){
+    var Bullet = function(x, y, heading){
         this.x = x;
         this.y = y;
-         
+        this.heading = heading;
+        this.img = BULLETIMAGE;
     };
+
+    Bullet.prototype.draw = function(){
+        image(this.img, this.x, this.y);
+    }
 
     var Player = function(x, y){
         this.x = x;
@@ -44,6 +49,8 @@ var sketchProc = function(processingInstance) {
         this.img = PLAYERIMAGE;
         this.readyToShoot = true;
         this.delay = 0;
+        //represent the angle headed by the Player
+        this.heading = 90;
     };
     Player.prototype.draw = function(){
         image(this.img, this.x, this.y);
@@ -55,11 +62,11 @@ var sketchProc = function(processingInstance) {
         }
 
     };
-    PLayer.prototype.shoot = function(){
+    Player.prototype.shoot = function(){
         if(this.readyToShoot){
             this.readyToShoot = false;
             this.delay = BULLETDELAY;
-            var bullet = new Bullet(this.x, this.y);
+            var bullet = new Bullet(this.x, this.y, this.heading);
             bullets[bullets.length] = bullet;
         }
 
