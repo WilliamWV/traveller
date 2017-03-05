@@ -23,6 +23,13 @@ var sketchProc = function(processingInstance) {
     var BUTTONWIDTH = XDIMENTION/4;
     var BUTTONHEIGHT = YDIMENTION/8;
 
+    var BACKGROUNDCOLOR = [133, 51, 181];
+    var OBSTACLECOLOR = [30, 30, 30];
+    var BUTTONCOLOR = [72, 0, 114];
+    var BUTTONLABEL = [204, 204, 255];
+    var MESSAGECOLOR = [255, 255, 255];
+
+
     var PLAYERIMAGE = loadImage("../img/Traveller/Player.png");
     var BULLETIMAGE = loadImage("../img/Traveller/Bullet.png");
     var CANNONIMAGE = loadImage("../img/Traveller/Cannon.png");
@@ -72,6 +79,64 @@ var sketchProc = function(processingInstance) {
 
     };
 
+    var Button = function(x, y, label, widht, height){
+          this.x = x;
+          this.y = y;
+          this.label = label;
+          this.width = width;
+          this.height = height;
+          this.isDrawn = false;
+    };
+    Button.prototype.draw = function(){
+        fill(BUTTONCOLOR[0], BUTTONCOLOR[1], BUTTONCOLOR[2]);
+        rect(this.x, this.y, this.width. this.height);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textSize(MESSAGESIZE);
+        text(this.label, this.x + this.width/2, this.y + this.height/2);
+        this.isDrawn = true;
+    };
+
+    Button.prototype.isOver = function(x, y){
+        return (x>=this.x && x<=this.x+this.width && y>=this.y && y<=this.y+this.height);
+    };
+
+    var PauseButton = function(x, y, width, height){
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.isDrawn = false;
+    };
+    pauseButton.prototype.draw = function() {
+			fill(153, 153, 255);
+			ellipse(this.x, this.y, this.width, this.height);
+			fill(51, 0, 102);
+			noStroke();
+			rect(this.x-this.width/4, this.y - this.height/4, this.width/8, (1/2)*this.height);
+			rect(this.x+this.width/8, this.y - this.height/4, this.width/8, (1/2)*this.height);
+			this.isDrawn = true;
+		};
+		pauseButton.prototype.isOver = function(x, y){
+			return(Math.sqrt((x-this.x)*(x-this.x) + (y - this.y)*(x-this.x))<=this.width/2);
+		};
+
+    //instances of buttons used in the game
+		var PAUSE = new pauseButton(XDIMENTION * (3/4), BUTTONHEIGHT, BUTTONHEIGHT, BUTTONHEIGHT);
+		var PAUSECONTBUTTON = new Button(2*BUTTONWIDTH, (7/2)*BUTTONHEIGHT, "CONTINUE", BUTTONWIDTH*2, BUTTONHEIGHT);
+		var PAUSERESTBUTTON = new Button(2*BUTTONWIDTH, 5*BUTTONHEIGHT, "RESTART", BUTTONWIDTH*2, BUTTONHEIGHT);
+		var PAUSEQUITBUTTON = new Button(2*BUTTONWIDTH, (13/2)*BUTTONHEIGHT, "QUIT", BUTTONWIDTH*2, BUTTONHEIGHT);
+		var AGAINBUTTON = new Button(BUTTONWIDTH, 6*BUTTONHEIGHT, "TRY AGAIN", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
+		var QUITBUTTON = new Button(3*BUTTONWIDTH, 6*BUTTONHEIGHT, "QUIT", BUTTONWIDTH, BUTTONHEIGHT);
+		var STARTBUTTON = new Button(2*BUTTONWIDTH, 4*BUTTONHEIGHT, "START", BUTTONWIDTH*(3/2), BUTTONHEIGHT*(3/2));
+		var CONTINUEBUTTON = new Button(2*BUTTONWIDTH, 6*BUTTONHEIGHT, "CONTINUE", (3/2)*BUTTONWIDTH, BUTTONHEIGHT);
+
+		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON];
+
+
+    var startScene = function(){
+
+    };
 
 
     draw  =function{
