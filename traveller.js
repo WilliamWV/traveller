@@ -33,6 +33,7 @@ var sketchProc = function(processingInstance) {
     var MESSAGECOLOR = [255, 255, 255];
     var SCENECOLOR = [0, 102, 204];
 
+    var BEFOREPAUSE = ALIVE;
 
     var PLAYERIMAGE = loadImage("../img/Traveller/Player.png");
     var BULLETIMAGE = loadImage("../img/Traveller/Bullet.png");
@@ -140,7 +141,7 @@ var sketchProc = function(processingInstance) {
       this.index+=1;
     };
 
-    
+
     var Button = function(x, y, label, widht, height){
           this.x = x;
           this.y = y;
@@ -221,6 +222,8 @@ var sketchProc = function(processingInstance) {
     var pauseScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
 
+        BEFOREPAUSE = PLAYERSTATE;
+
         PAUSECONTBUTTON.draw();
         PAUSERESTBUTTON.draw();
         PAUSEQUITBUTTON.draw();
@@ -252,6 +255,57 @@ var sketchProc = function(processingInstance) {
 			text("YOU WON", XDIMENTION/2, YDIMENTION/3);
 
     };
+
+    var startGame = function(){
+
+    };
+    //pre-defined function called always that the user press a key
+		keyPressed = function(){
+			input[keyCode] = true;
+		};
+		//pre-defined function called always that the user release a key
+		keyReleased = function(){
+			input[keyCode] = false;
+		};
+
+		//per-defined function called always that the used click with the mouse
+		mouseClicked = function(){
+			for(var i = 0; i<BUTTONS.length; i++){
+				if(BUTTONS[i].isDrawn && BUTTONS[i].isOver(mouseX, mouseY)){
+					if(i === 0){//pause
+						BEFOREPAUSE = PLAYERSTATE;
+						PLAYERSTATE = PAUSED;
+					}
+					else if(i === 1){//continue from pause
+						PLAYERSTATE = BEFOREPAUSE;
+
+					}
+					else if(i===2){//restart from pause
+						startGame();
+					}
+					else if(i === 3){//quit from pause
+						PLAYERSTATE = GAMEOVER;
+					}
+					else if(i===4){//again
+						startGame();
+
+					}
+					else if(i===5){//quit
+						PLAYERSTATE = GAMEOVER;
+					}
+					else if(i===6){//start
+						startGame();
+					}
+					else if(i===7){//continue
+						PLAYERSTATE = WAITTING;
+					}
+
+					disableAllButtons();
+
+					}
+			}
+		};
+
 
     draw = function{
         if(PLAYERSTATE === ALIVE){
