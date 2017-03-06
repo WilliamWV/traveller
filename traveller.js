@@ -6,12 +6,17 @@ var sketchProc = function(processingInstance) {
     size(XDIMENTION, YDIMENTION);
     frameRate(FPS);
     var SPEED = 2;
+    var TURNINGSPEED = 2;
     var ATRITTION = SPEED/FPS;
     var BULLETDELAY = FPS/5;
     var BULLETSPEED = 5;
     var PLAYERSIZE = XDIMENTION /10;
     var CANNOONSIZE = XDIMENTION / 15;
     var BULLETSIZE = PLAYERSIZE/3;
+
+    var EARTHPOSX = 100*XDIMENTION;
+    var EARTHPOSY = 20*YDIMENTION;
+    var EARTHSIZE = 2*XDIMENTION;
     //Possible states within the game
     var DEAD = 0;
     var ALIVE = 1;
@@ -55,6 +60,8 @@ var sketchProc = function(processingInstance) {
     var CAMERARELATIVEX = 0;
     var CAMERARELATIVEY = 0;
     var bullets = [];
+    var obstacles = [];
+    var cannons = [];
     var input =[];
 
     var Bullet = function(x, y, heading){
@@ -62,10 +69,15 @@ var sketchProc = function(processingInstance) {
         this.y = y;
         this.heading = heading;
         this.img = BULLETIMAGE;
+        this.isDrawn;
     };
 
     Bullet.prototype.draw = function(){
         image(this.img, this.x, this.y, BULLETSIZE, BULLETSIZE);
+        if(this.x>XDIMENTION*(4/3) || this.x<-(1/3)*XDIMENTION ||this.y>YDIMENTION*(4/3) || this.y<-(1/3)*YDIMENTION){
+            this.isDrawn = false;
+        }
+        this.isDrawn = true;
     }
 
     var Player = function(x, y){
@@ -81,6 +93,8 @@ var sketchProc = function(processingInstance) {
         this.i = 0;
     };
     Player.prototype.draw = function(){
+        this.x += this.xSpeed;
+        this.y -= this.ySpeed;
         image(this.img, this.x, this.y, PLAYERSIZE, PLAYERSIZE);
         if(!this.readyToShoot){
             this.delay -= 1;
@@ -102,6 +116,9 @@ var sketchProc = function(processingInstance) {
     Player.prototype.explode = function(){
         image(EXPLOSION[this.index], this.x, this.y, PLAYERSIZE, PLAYERSIZE);
         this.index+=1;
+        if(this.index>=12){
+            PLAYERSTATE = DEAD;
+        }
     };
 
     var Cannon = function(x, y){
@@ -272,8 +289,75 @@ var sketchProc = function(processingInstance) {
       }
     };
 
+    var move = function(){
+        player.xSpeed = SPEED * cos(player.direction);
+        player.ySpeed = SPEED * sin(player.direction);
+
+    };
+
+    var turn = function(dir){
+        if(dir === "Right"){
+            player.direction = (360 + (player.direction - TURNINGSPEED))%360;
+        }
+        else if(dir === "Left"){
+            player.direction = (player.direction + TURNINGSPEED)%360;
+        }
+
+    };
+
+    var checkFinal = function(){
+        if(Math.sqrt((player.x-EARTHPOSX)*(player.x-EARTHPOSX) + (player.y-EARTHPOSY)*(player.y-EARTHPOSY))<=EARTHSIZE/2){
+            PLAYERSTATE = WINNER;
+        }
+    }
+
+    var checkColision = function(){
+        for(var obst = 0; obst<obstacles.length; obst++){
+            if(obstacles[obst].playerColide()){
+                PLAYERSTATE = KILLED;
+            }
+            for(var bul = 0; bul<bullets.length; bul++){
+                if(obstacle[obst].bulletColide(bul)){
+                    bullet[bul].destroy();
+                }
+            }
+        }
+    };
+
+    var checkHits = function(){
+        for(var bul = 0; bul<bullets.length; bul++){
+            if(bullets[bul].hitPlayer()){
+                PLAYERSTATE = KILLED;
+            }
+            for(var can = 0; can< cannons.length; can++){
+                if(bullets[bul].hitCannon(can)){
+                    cannon[can].explode();
+                }
+            }
+        }
+    };
+    
     var gameRunning = function(){
-        
+        drawField();
+        player.draw();
+        PAUSE.draw();
+
+        if(input[UP]){
+            move();
+        }
+        if(input[RIGHT]){
+            turn("Right");
+        }
+        if(input[LEFT]){
+            turn("Left");
+        }
+        if(input[CONTROL]){
+            player.shoot();
+        }
+
+        checkHits();
+        checkColision();
+        checkFinal();
     }
     //pre-defined function called always that the user press a key
 		keyPressed = function(){
