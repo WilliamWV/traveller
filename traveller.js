@@ -120,6 +120,7 @@ var sketchProc = function(processingInstance) {
             PLAYERSTATE = DEAD;
         }
     };
+    var player = new Player(XDIMENTION/2,YDIMENTION/2);
 
     var Cannon = function(x, y){
         this.x = x;
@@ -162,6 +163,26 @@ var sketchProc = function(processingInstance) {
       this.index+=1;
     };
 
+    var Obstacle = function(x1, y1, x2, y2, x3, y3, x4, y4){
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.x3 = x3;
+        this.y3 = y3;
+        this.x4 = x4;
+        this.y4 = y4;
+        this.isDrawn = false;
+    };
+
+    Obstacle.prototype.draw = function(){
+        this.isDrawn = true;
+        quad(x1, y1, x2, y2, x3, y3, x4, y4);
+    };
+
+    Obstacle.prototype.playerColide = function(){
+        if((player.x> ))
+    };
 
     var Button = function(x, y, label, widht, height){
           this.x = x;
@@ -218,7 +239,6 @@ var sketchProc = function(processingInstance) {
 
 		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON];
 
-    var player = new Player(XDIMENTION/2,YDIMENTION/2);
 
     var startScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
@@ -336,7 +356,7 @@ var sketchProc = function(processingInstance) {
             }
         }
     };
-    
+
     var gameRunning = function(){
         drawField();
         player.draw();
