@@ -81,6 +81,7 @@ var sketchProc = function(processingInstance) {
         this.isDrawn = true;
     }
 
+
     var Player = function(x, y){
         this.x = x;
         this.y = y;
@@ -122,6 +123,14 @@ var sketchProc = function(processingInstance) {
         }
     };
     var player = new Player(XDIMENTION/2,YDIMENTION/2);
+
+    //defined here to have a definition of player
+    Bullet.prototype.hitPlayer = function(){
+          return(bullet.x>=player.x && bullet.x<=player.x+PLAYERSIZE && bullet.y>=player.y && bullet.y<=player.y+PLAYERSIZE);
+    }
+    Bullet.prototype.hitCannon = function(index){
+            return(bullet.x>=cannons[index].x && bullet.x<=cannons[index].x+CANNOONSIZE && bullet.y>=cannons[index] && bullet.y<=cannons[index]+CANNONSIZE);
+    }
 
     var Cannon = function(x, y){
         this.x = x;
@@ -231,7 +240,20 @@ var sketchProc = function(processingInstance) {
         return true;
     }
     Obstacle.prototype.playerColide = function(){
-        if((player.x> ))
+        if((this.isOn(player.x, player.y) || this.isOn(player.x+PLAYERSIZE, player.y)||
+             this.isOn(player.x, player.y+PLAYERSIZE)||this.isOn(player.x+PLAYERSIZE, player.y+PLAYERSIZE))){
+                  return true;
+             }
+        else{
+            return false;
+        }
+    };
+    Obstacle.prototype.bulletColide = function(index){
+        if(this.isOn(bullets[index].x, bullets[index].y)){
+            removeItem(bullets, index);
+        }
+
+
     };
 
     var Button = function(x, y, label, widht, height){
@@ -387,9 +409,8 @@ var sketchProc = function(processingInstance) {
                 PLAYERSTATE = KILLED;
             }
             for(var bul = 0; bul<bullets.length; bul++){
-                if(obstacle[obst].bulletColide(bul)){
-                    bullet[bul].destroy();
-                }
+                //check and handle bullet collision eith an obstacle
+                obstacle[obst].bulletColide(bul);
             }
         }
     };
@@ -407,7 +428,12 @@ var sketchProc = function(processingInstance) {
         }
     };
 
+    var drawField = function(){
+
+    }
+
     var gameRunning = function(){
+        background(BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0]);
         drawField();
         player.draw();
         PAUSE.draw();
