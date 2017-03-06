@@ -56,7 +56,8 @@ var sketchProc = function(processingInstance) {
                      loadImage("../img/Traveller/Explosion/EXPL11.png"),
                      loadImage("../img/Traveller/Explosion/EXPL12.png")];
 
-
+    var COINSC = 1;
+    var PARAL = 2
     var CAMERARELATIVEX = 0;
     var CAMERARELATIVEY = 0;
     var bullets = [];
@@ -163,6 +164,29 @@ var sketchProc = function(processingInstance) {
       this.index+=1;
     };
 
+    var solveSystem(line1, line2){
+        /*
+        ax + b = y
+        cx + d = y
+
+        ax+b = cx+d
+        (a-c)x = d-b
+        x = (d-b)/(a-c);
+
+        y = a(d-b)/(a-c) + b
+        */
+        if(line1[0] === line2[0]){
+            if(line1[1] === line2[1]){
+                return COINSC;
+            }
+            else{
+                return PARAL;
+            }
+        }
+        var x = (line2[1] - line1[1]) / (line1[0]-line2[0]);
+        var y = line1[0]*x + line1[1];
+        return [x, y];
+    }
     var Obstacle = function(x1, y1, x2, y2, x3, y3, x4, y4){
         this.x1 = x1;
         this.y1 = y1;
@@ -172,14 +196,40 @@ var sketchProc = function(processingInstance) {
         this.y3 = y3;
         this.x4 = x4;
         this.y4 = y4;
+        this.x = [x1, x2, x3, x4];
+        this.y = [y1, y2, y3, y4];
         this.isDrawn = false;
+        this.equations = [[(y2-y1)/(x2-x1),y1-(x1*(y2-y1)/(x2-x1))],
+                          [(y3-y2)/(x3-x2),y2-(x2*(y3-y2)/(x3-x2))],
+                          [(y4-y3)/(x4-x3),y3-(x3*(y4-y3)/(x4-x3))],
+                          [(y1-y4)/(x1-x4),y4-(x4*(y1-y4)/(x1-x4))]];
     };
-
-    Obstacle.prototype.draw = function(){
+    Obstacle.prototype.draw = function(){02*1/
         this.isDrawn = true;
         quad(x1, y1, x2, y2, x3, y3, x4, y4);
     };
 
+    Obstacle.prototype.isOn = function(x, y){
+        var toPoint = [[(y-y1)/(x-x1),y1-(x1*(y-y1)/(x-x1))],
+                       [(y-y2)/(x-x2),y2-(x2*(y-y2)/(x-x2))],
+                       [(y-y3)/(x-x3),y3-(x3*(y-y3)/(x-x3))],
+                       [(y-y4)/(x-x4),y4-(x4*(y-y4)/(x-x4))]];
+
+        for(var i = 0; i<toPoint.length; i++){
+            for(var j = 0; j<this.equations.length; j++){
+                var intersection = solveSystem(toPoint[i], this.equation[j]);
+                if(intersection!== PARAL && intersection!== COINSC){
+                    if(intersection[0] >= x && intersection[0]<=this.x[i] && intersection[1] >= x && intersection[1]<=this.y[i]||
+                       intersection[0] >= x && intersection[0]<=this.x[i] && intersection[1] <= x && intersection[1]>=this.y[i]||
+                       intersection[0] <= x && intersection[0]>=this.x[i] && intersection[1] >= x && intersection[1]<=this.y[i]||
+                       intersection[0] <= x && intersection[0]>=this.x[i] && intersection[1] <= x && intersection[1]>=this.y[i]){
+                          return false;
+                     }
+                 }
+            }
+        }
+        return true;
+    }
     Obstacle.prototype.playerColide = function(){
         if((player.x> ))
     };
