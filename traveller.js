@@ -540,6 +540,31 @@ var sketchProc = function(processingInstance) {
             player.shoot();
         }
 
+        if(!input[UP]){
+            if(player.xSpeed!=0){
+                if(Math.abs(player.xSpeed)<ATRITTION){
+                    player.xSpeed = 0;
+                }
+                if(player.xSpeed>0){
+                    player.xSpeed -= ATRITTION * cos(player.heading);
+                }
+                else if (player.xSpeed<0){
+                    player.xSpeed += ATRITTION * cos(player.heading);
+                }
+            }
+
+            if(player.ySpeed!=0){
+                if(Math.abs(player.ySpeed)<ATRITTION){
+                    player.ySpeed = 0;
+                }
+                if(player.ySpeed>0){
+                    player.ySpeed -= ATRITTION * sin(player.heading);
+                }
+                else if (player.ySpeed<0){
+                    player.ySpeed += ATRITTION * sin(player.heading);
+                }
+            }
+        }
         checkHits();
         checkColision();
         checkFinal();
