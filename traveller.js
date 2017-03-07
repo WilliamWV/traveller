@@ -261,6 +261,7 @@ var sketchProc = function(processingInstance) {
                           [(y1-y4)/(x1-x4),y4-(x4*(y1-y4)/(x1-x4))]];
     };
     Obstacle.prototype.draw = function(){
+        noStroke();
         fill(OBSTACLECOLOR[0], OBSTACLECOLOR[1], OBSTACLECOLOR[2]);
         quad(x1, y1, x2, y2, x3, y3, x4, y4);
     };
@@ -368,6 +369,66 @@ var sketchProc = function(processingInstance) {
 
 		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON];
 
+    var generateField = function(){
+
+        var u = XDIMENTION/8; // -> u: default unity
+        obstacles = [new Obstacle(0*u, YDIMENTION - 3*u, 3*u, YDIMENTION - 3*u, 2*u, YDIMENTION - 0*u, 0*u, YDIMENTION - 0*u),
+                     new Obstacle(0*u, YDIMENTION - 6*u, 2*u, YDIMENTION - 6*u, 3*u, YDIMENTION - 3*u, 0*u, YDIMENTION - 3*u),
+                     new Obstacle(6*u, YDIMENTION - 7*u, 10*u, YDIMENTION - 8.5*u, 10*u, YDIMENTION - 0*u, 5*u, YDIMENTION - 0*u),
+                     new Obstacle(0*u, YDIMENTION - 10*u, 5*u, YDIMENTION - 10*u, 2*u, YDIMENTION - 6*u, 6*u, YDIMENTION - 0*u),
+                     new Obstacle(0*u, YDIMENTION - 15*u, 15*u, YDIMENTION - 15*u, 16*u, YDIMENTION - 10*u, 0*u, YDIMENTION - 10*u),
+                     new Obstacle(10*u, YDIMENTION - 8.5*u, 14*u, YDIMENTION - 7*u, 14*u, YDIMENTION - 0*u, 10*u, YDIMENTION - 0*u),
+                     new Obstacle(14*u, YDIMENTION - 7*u, 20*u, YDIMENTION - 7*u, 20*u, YDIMENTION - 0*u, 14*u, YDIMENTION - 0*u),
+                     new Obstacle(15*u, YDIMENTION - 15*u, 19*u, YDIMENTION - 12*u, 18*u, YDIMENTION - 9*u, 16*u, YDIMENTION - 10*u),
+                     new Obstacle(20*u, YDIMENTION - 7*u, 23*u, YDIMENTION - 10*u, 23*u, YDIMENTION - 0*u, 20*u, YDIMENTION - 0*u),
+                     new Obstacle(23*u, YDIMENTION - 10*u, 25*u, YDIMENTION - 14*u, 25*u, YDIMENTION - 0*u, 23*u, YDIMENTION - 0*u),
+                     new Obstacle(25*u, YDIMENTION - 14*u, 30*u, YDIMENTION - 14*u, 30*u, YDIMENTION - 0*u, 25*u, YDIMENTION - 0*u),
+                     new Obstacle(24*u, YDIMENTION - 22*u, 30*u, YDIMENTION - 22*u, 30*u, YDIMENTION - 14*u, 25*u, YDIMENTION - 14*u),
+                     new Obstacle(0*u, YDIMENTION - 18*u, 14*u, YDIMENTION - 18*u, 15*u, YDIMENTION - 15*u, 0*u, YDIMENTION - 15*u),
+                     new Obstacle(0*u, YDIMENTION - 20*u, 10*u, YDIMENTION - 20*u, 14*u, YDIMENTION - 18*u, 0*u, YDIMENTION - 18*u),
+                     new Obstacle(17*u, YDIMENTION - 29*u, 30*u, YDIMENTION - 29*u, 30*u, YDIMENTION - 22*u, 15*u, YDIMENTION - 22*u),
+                     new Obstacle(9*u, YDIMENTION - 29*u, 17*u, YDIMENTION - 29*u, 15*u, YDIMENTION - 22*u, 8.5*u, YDIMENTION - 22.5*u),
+                     new Obstacle(6*u, YDIMENTION - 25*u, 8*u, YDIMENTION - 25*u, 10*u, YDIMENTION - 20*u, 4*u, YDIMENTION - 20*u),
+                     new Obstacle(1*u, YDIMENTION - 21*u, 5*u, YDIMENTION - 21*u, 4*u, YDIMENTION - 20*u, 1*u, YDIMENTION - 20*u),
+                     new Obstacle(0*u, YDIMENTION - 24*u, 1*u, YDIMENTION - 21*u, 1*u, YDIMENTION - 20*u, 0*u, YDIMENTION - 20*u),
+                     new Obstacle(8*u, YDIMENTION - 34*u, 9*u, YDIMENTION - 29*u, 8.5*u, YDIMENTION - 25.5*u, YDIMENTION - 6*u, 30*u),
+                     new Obstacle(5*u, YDIMENTION - 34*u, 8*u, YDIMENTION - 34*u, 6*u, YDIMENTION - 30*u, 4*u, YDIMENTION - 30*u),
+                     new Obstacle(0*u, YDIMENTION - 42*u, 4*u, YDIMENTION - 42*u, 4*u, YDIMENTION - 36*u, 0*u, YDIMENTION - 30*u),
+                     new Obstacle(4*u, YDIMENTION - 42*u, 11*u, YDIMENTION - 42*u, 11*u, YDIMENTION - 36*u, 4*u, YDIMENTION - 36*u),
+                     new Obstacle(11*u, YDIMENTION - 42*u, 16*u, YDIMENTION - 42*u, 16*u, YDIMENTION - 38*u, 11*u, YDIMENTION - 38*u),
+                     new Obstacle(11*u, YDIMENTION - 36*u, 15*u, YDIMENTION - 35*u, 14*u, YDIMENTION - 32*u, 12*u, YDIMENTION - 32*u),
+                     new Obstacle(11*u, YDIMENTION - 38*u, 16*u, YDIMENTION - 38*u, 15*u, YDIMENTION - 35*u, 11*u, YDIMENTION - 36*u),
+                     new Obstacle(16*u, YDIMENTION - 42*u, 23*u, YDIMENTION - 42*u, 23*u, YDIMENTION - 40*u, 16*u, YDIMENTION - 38*u),
+                     new Obstacle(23*u, YDIMENTION - 42*u, 30*u, YDIMENTION - 42*u, 30*u, YDIMENTION - 40*u, 23*u, YDIMENTION - 40*u),
+                     new Obstacle(23*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 29*u, 23*u, YDIMENTION - 29*u)];
+
+        cannons = [new Cannon(5*u, YDIMENTION - (10*u)),
+                   new Cannon(18.5*u, YDIMENTION - (10.5*u)),
+                   new Cannon(22*u- CANNONSIZE, YDIMENTION - (9*u)),
+                   new Cannon(15*u, YDIMENTION - (15*u+CANNONSIZE)),
+                   new Cannon(14*u, YDIMENTION - (17*u)),
+                   new Cannon(17*u, YDIMENTION - (22*u)),
+                   new Cannon(18*u, YDIMENTION - (22*u)),
+                   new Cannon(19*u, YDIMENTION - (22*u)),
+                   new Cannon(20*u, YDIMENTION - (22*u)),
+                   new Cannon(21*u, YDIMENTION - (22*u)),
+                   new Cannon(22*u, YDIMENTION - (22*u)),
+                   new Cannon(1*u, YDIMENTION - (21*u+CANNONSIZE)),
+                   new Cannon(0.5*u, YDIMENTION - (23*u)),
+                   new Cannon(6*u-CANNONSIZE, YDIMENTION - (30*u)),
+                   new Cannon(2*u, YDIMENTION - (23*u)),
+                   new Cannon(3*u, YDIMENTION - (24.5*u)),
+                   new Cannon(12*u-CANNONSIZE, YDIMENTION - (35*u)),
+                   new Cannon(14*u, YDIMENTION - (33*u)),
+                   new Cannon(15*u, YDIMENTION - (35*u)),
+                   new Cannon(16*u, YDIMENTION - (37*u)),
+                   new Cannon(18*u, YDIMENTION - (38.5*u)),
+                   new Cannon(20*u, YDIMENTION - (39*u)),
+                   new Cannon(19*u-CANNONSIZE, YDIMENTION - (37*u)),
+                   new Cannon(18*u, YDIMENTION - (34*u)),
+                   new Cannon(17*u+CANNONSIZE, YDIMENTION - (33*u)),
+                   new Cannon(15*u, YDIMENTION - (29*u + CANNONSIZE))];
+    };
 
     var startScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
@@ -426,9 +487,11 @@ var sketchProc = function(processingInstance) {
 
     };
 
+
     var startGame = function(){
         CAMERARELATIVEY = 0;
         CAMERARELATIVEX = 0;
+        generateField();
         PLAYERSTATE = ALIVE;
     };
 
