@@ -14,6 +14,7 @@ var sketchProc = function(processingInstance) {
     var CANNOONSIZE = XDIMENTION / 15;
     var BULLETSIZE = PLAYERSIZE/3;
 
+    var CURRENTFRAME = 0;
     var EARTHPOSX = 100*XDIMENTION;
     var EARTHPOSY = 20*YDIMENTION;
     var EARTHSIZE = 2*XDIMENTION;
@@ -74,6 +75,8 @@ var sketchProc = function(processingInstance) {
     };
 
     Bullet.prototype.draw = function(){
+        this.x+=BULLETSPEED * cos(this.heading);
+        this.y-=BULLETSPEED * sin(this.heading);
         image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, BULLETSIZE, BULLETSIZE);
 
     };
@@ -102,7 +105,7 @@ var sketchProc = function(processingInstance) {
         this.readyToShoot = true;
         this.delay = 0;
         //represent the angle headed by the Player
-        this.heading = 90;
+        this.heading = 270;
         this.i = 0;
     };
     Player.prototype.draw = function(){
@@ -110,7 +113,13 @@ var sketchProc = function(processingInstance) {
         this.y -= this.ySpeed;
         CAMERARELATIVEY-=this.ySpeed;
         CAMERARELATIVEX+=this.xSpeed;
-        image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
+        pushMatrix();
+        translate(this.x- CAMERARELATIVEX + PLAYERSIZE/2, this.y- CAMERARELATIVEY+ PLAYERSIZE/2);
+        rotate(this.heading);
+
+        image(this.img, -PLAYERSIZE/2, -PLAYERSIZE/2, PLAYERSIZE, PLAYERSIZE);
+
+        popMatrix();
         if(!this.readyToShoot){
             this.delay -= 1;
             if(this.delay <=0){
@@ -163,7 +172,16 @@ var sketchProc = function(processingInstance) {
             this.explode();
         }
         else{
-            image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY);
+            var dx = this.x - player.x;
+            var dy = this.y - player.y;
+            var tan = dy/dx;
+            this.heading = atan(tan);
+
+            pushMatrix();
+            translate(this.x + CANNONSIZE/2 - CAMERARELATIVEX, this.y +CANNONSIZE/2 - CAMERARELATIVEY);
+            rotate(this.heading);
+            image(this.img, -CANNONSIZE/2, -CANNONSIZE/2, CANNONSIZE, CANNONSIZE);
+            popMatrix();
             this.isDrawn = true;
             if(this.delay>0){
                 this.delay -=1;
@@ -190,6 +208,7 @@ var sketchProc = function(processingInstance) {
     Cannon.prototype.mayDraw = function(){
       var x = this.x-CAMERARELATIVEX;
       var y = this.y-CAMERARELATIVEY;
+
         if((x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y<=(4/3)*YDIMENTION && y>=-(1/3)*YDIMENTION)||
            (x+CANNONSIZE<=(4/3)*XDIMENTION && x+CANNONSIZE>=-(1/3)*XDIMENTION && y<=(4/3)*XDIMENTION && y>=-(1/3)*YDIMENTION)||
            (x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)||
@@ -436,8 +455,8 @@ var sketchProc = function(processingInstance) {
     };
 
     var move = function(){
-        player.xSpeed = SPEED * cos(player.direction);
-        player.ySpeed = SPEED * sin(player.direction);
+        player.xSpeed = SPEED * cos(player.heading);
+        player.ySpeed = SPEED * sin(player.heading);
 
     };
 
@@ -524,6 +543,14 @@ var sketchProc = function(processingInstance) {
         checkHits();
         checkColision();
         checkFinal();
+
+        CURRENTFRAME++;
+        if(CURRENTFRAME >= FPS){
+            checkDrawables(cannons, false);
+            checkDrawables(obstacles, false);
+            checkDrawables(bullets, true);
+            CURRENTFRAME = 0;
+        }
     }
     //pre-defined function called always that the user press a key
 		keyPressed = function(){
