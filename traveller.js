@@ -41,21 +41,21 @@ var sketchProc = function(processingInstance) {
 
     var BEFOREPAUSE = ALIVE;
 
-    var PLAYERIMAGE = loadImage("../img/Traveller/Player.png");
-    var BULLETIMAGE = loadImage("../img/Traveller/Bullet.png");
-    var CANNONIMAGE = loadImage("../img/Traveller/Cannon.png");
-    var EXPLOSION = [loadImage("../img/Traveller/Explosion/EXPL1.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL2.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL3.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL4.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL5.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL6.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL7.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL8.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL9.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL10.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL11.png"),
-                     loadImage("../img/Traveller/Explosion/EXPL12.png")];
+    var PLAYERIMAGE = loadImage("./img/Traveller/Player.png");
+    var BULLETIMAGE = loadImage("./img/Traveller/Bullet.png");
+    var CANNONIMAGE = loadImage("./img/Traveller/Cannon.png");
+    var EXPLOSION = [loadImage("./img/Traveller/Explosion/EXPL1.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL2.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL3.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL4.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL5.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL6.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL7.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL8.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL9.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL10.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL11.png"),
+                     loadImage("./img/Traveller/Explosion/EXPL12.png")];
 
     var COINSC = 1;
     var PARAL = 2
