@@ -70,17 +70,28 @@ var sketchProc = function(processingInstance) {
         this.y = y;
         this.heading = heading;
         this.img = BULLETIMAGE;
-        this.isDrawn;
+        this.isDrawn = true;
     };
 
     Bullet.prototype.draw = function(){
-        image(this.img, this.x, this.y, BULLETSIZE, BULLETSIZE);
-        if(this.x>XDIMENTION*(4/3) || this.x<-(1/3)*XDIMENTION ||this.y>YDIMENTION*(4/3) || this.y<-(1/3)*YDIMENTION){
-            this.isDrawn = false;
-        }
-        this.isDrawn = true;
-    }
+        image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, BULLETSIZE, BULLETSIZE);
 
+    };
+    Bullet.prototype.mayDraw = function(index){
+      var x = this.x-CAMERARELATIVEX;
+      var y = this.y-CAMERARELATIVEY;
+        if((x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y<=(4/3)*YDIMENTION && y>=-(1/3)*YDIMENTION)||
+           (x+CANNONSIZE<=(4/3)*XDIMENTION && x+SIZE>=-(1/3)*XDIMENTION && y<=(4/3)*XDIMENTION && y>=-(1/3)*YDIMENTION)||
+           (x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)||
+           (x+CANNONSIZE<=(4/3)*XDIMENTION && x+CANNONSIZE>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)
+         ){
+            this.isDraw = true;
+         }
+         else{
+            this.isDraw = false;
+            removeItem(bullets, index);
+         }
+    };
 
     var Player = function(x, y){
         this.x = x;
@@ -97,7 +108,9 @@ var sketchProc = function(processingInstance) {
     Player.prototype.draw = function(){
         this.x += this.xSpeed;
         this.y -= this.ySpeed;
-        image(this.img, this.x, this.y, PLAYERSIZE, PLAYERSIZE);
+        CAMERARELATIVEY-=this.ySpeed;
+        CAMERARELATIVEX+=this.xSpeed;
+        image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
         if(!this.readyToShoot){
             this.delay -= 1;
             if(this.delay <=0){
@@ -116,7 +129,7 @@ var sketchProc = function(processingInstance) {
 
     };
     Player.prototype.explode = function(){
-        image(EXPLOSION[this.index], this.x, this.y, PLAYERSIZE, PLAYERSIZE);
+        image(EXPLOSION[this.index], this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
         this.index+=1;
         if(this.index>=12){
             PLAYERSTATE = DEAD;
@@ -131,6 +144,7 @@ var sketchProc = function(processingInstance) {
     Bullet.prototype.hitCannon = function(index){
             return(bullet.x>=cannons[index].x && bullet.x<=cannons[index].x+CANNOONSIZE && bullet.y>=cannons[index] && bullet.y<=cannons[index]+CANNONSIZE);
     }
+
 
     var Cannon = function(x, y){
         this.x = x;
@@ -149,13 +163,14 @@ var sketchProc = function(processingInstance) {
             this.explode();
         }
         else{
-            image(this.img, this.x, this.y);
+            image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY);
             this.isDrawn = true;
             if(this.delay>0){
                 this.delay -=1;
             }
             if(this.delay <=0){
                 this.readyToShoot = true;
+                this.shoot();
             }
         }
     };
@@ -169,10 +184,23 @@ var sketchProc = function(processingInstance) {
     };
 
     Cannon.prototype.explode = function(){
-      image(EXPLOSION[this.index], this.x, this.y, PLAYERSIZE, PLAYERSIZE);
+      image(EXPLOSION[this.index], this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
       this.index+=1;
     };
-
+    Cannon.prototype.mayDraw = function(){
+      var x = this.x-CAMERARELATIVEX;
+      var y = this.y-CAMERARELATIVEY;
+        if((x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y<=(4/3)*YDIMENTION && y>=-(1/3)*YDIMENTION)||
+           (x+CANNONSIZE<=(4/3)*XDIMENTION && x+CANNONSIZE>=-(1/3)*XDIMENTION && y<=(4/3)*XDIMENTION && y>=-(1/3)*YDIMENTION)||
+           (x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)||
+           (x+CANNONSIZE<=(4/3)*XDIMENTION && x+CANNONSIZE>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)
+         ){
+            this.isDraw = true;
+         }
+         else{
+            this.isDraw = false;
+         }
+    };
     var solveSystem(line1, line2){
         /*
         ax + b = y
@@ -195,7 +223,7 @@ var sketchProc = function(processingInstance) {
         var x = (line2[1] - line1[1]) / (line1[0]-line2[0]);
         var y = line1[0]*x + line1[1];
         return [x, y];
-    }
+    };
     var Obstacle = function(x1, y1, x2, y2, x3, y3, x4, y4){
         this.x1 = x1;
         this.y1 = y1;
@@ -207,14 +235,14 @@ var sketchProc = function(processingInstance) {
         this.y4 = y4;
         this.x = [x1, x2, x3, x4];
         this.y = [y1, y2, y3, y4];
-        this.isDrawn = false;
+        this.isDrawn = true;
         this.equations = [[(y2-y1)/(x2-x1),y1-(x1*(y2-y1)/(x2-x1))],
                           [(y3-y2)/(x3-x2),y2-(x2*(y3-y2)/(x3-x2))],
                           [(y4-y3)/(x4-x3),y3-(x3*(y4-y3)/(x4-x3))],
                           [(y1-y4)/(x1-x4),y4-(x4*(y1-y4)/(x1-x4))]];
     };
-    Obstacle.prototype.draw = function(){02*1/
-        this.isDrawn = true;
+    Obstacle.prototype.draw = function(){
+        fill(OBSTACLECOLOR[0], OBSTACLECOLOR[1], OBSTACLECOLOR[2]);
         quad(x1, y1, x2, y2, x3, y3, x4, y4);
     };
 
@@ -254,6 +282,16 @@ var sketchProc = function(processingInstance) {
         }
 
 
+    };
+    Obstacle.prototype.mayDraw = function(){
+        for(var i = 0; i<this.x.length; i++){
+            if(x[i]-CAMERARELATIVEX<=(4/3)*XDIMENTION && x[i]-CAMERARELATIVEX>=-(1/3)*XDIMENTION &&
+               y[i]-CAMERARELATIVEY<=(4/3)*YDIMENTION && y[i]-CAMERARELATIVEY>=-(1/3)*YDIMENTION){
+                  this.isDrawn = true;
+                  return;
+               }
+        }
+        this.isDrawn = false;
     };
 
     var Button = function(x, y, label, widht, height){
@@ -375,6 +413,22 @@ var sketchProc = function(processingInstance) {
         PLAYERSTATE = ALIVE;
     };
 
+    var removeItem = function(list, index){
+        list.splice(index, 1);
+    };
+
+    var checkDrawables = function(list, bullet){
+        if(bullet){
+          for(var i = 0; i<list.length; i++){
+              list[i].mayDraw(i);
+          }
+        }
+        else{
+            for(var i = 0; i<lis.length; i++){
+                list[i].mayDraw();
+            }
+        }
+    };
     var disableAllButtons = function(){
       for(var i = 0; i<BUTTONS.length; i++){
         BUTTONS[i].isDrawn = false;
@@ -419,18 +473,34 @@ var sketchProc = function(processingInstance) {
         for(var bul = 0; bul<bullets.length; bul++){
             if(bullets[bul].hitPlayer()){
                 PLAYERSTATE = KILLED;
+                removeItem(bullets, bul);
             }
             for(var can = 0; can< cannons.length; can++){
                 if(bullets[bul].hitCannon(can)){
                     cannon[can].explode();
+                    removeItem(bullets, bul);
+                    removeItem(cannons, can);
                 }
             }
         }
     };
 
-    var drawField = function(){
 
-    }
+
+    var drawAllObjects = function(list){
+        for(var i = 0; i<list.length; i++){
+            if(list[i].isDrawn){
+                list[i].draw();
+            }
+        }
+    };
+
+    var drawField = function(){
+          drawAllObjects(obstacles);
+          drawAllObjects(cannons);
+          drawAllObjects(bullets);
+
+    };
 
     var gameRunning = function(){
         background(BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0]);
