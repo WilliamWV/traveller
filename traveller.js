@@ -5,14 +5,14 @@ var sketchProc = function(processingInstance) {
     var FPS = 60;
     size(XDIMENTION, YDIMENTION);
     frameRate(FPS);
-    var SPEED = 2;
-    var TURNINGSPEED = 2;
+    var SPEED = 3;
+    var TURNINGSPEED = 1/20;
     var ATRITTION = SPEED/FPS;
-    var BULLETDELAY = FPS/5;
-    var BULLETSPEED = 5;
+    var BULLETDELAY = FPS/2;
+    var BULLETSPEED = 10;
     var PLAYERSIZE = XDIMENTION /10;
-    var CANNOONSIZE = XDIMENTION / 15;
-    var BULLETSIZE = PLAYERSIZE/3;
+    var CANNONSIZE = XDIMENTION / 15;
+    var BULLETSIZE = PLAYERSIZE/10;
 
     var CURRENTFRAME = 0;
     var EARTHPOSX = 100*XDIMENTION;
@@ -27,6 +27,7 @@ var sketchProc = function(processingInstance) {
     var GAMEOVER = 5;
     var WAITTING = 6;
     var PLAYERSTATE = WAITTING;
+    var REMOVECANNON = 42;
 
     var MESSAGESIZE = 24;
     var BUTTONWIDTH = XDIMENTION/4;
@@ -39,7 +40,6 @@ var sketchProc = function(processingInstance) {
     var MESSAGECOLOR = [255, 255, 255];
     var SCENECOLOR = [0, 102, 204];
 
-    var BEFOREPAUSE = ALIVE;
 
     var PLAYERIMAGE = loadImage("./img/Traveller/Player.png");
     var BULLETIMAGE = loadImage("./img/Traveller/Bullet.png");
@@ -66,28 +66,32 @@ var sketchProc = function(processingInstance) {
     var cannons = [];
     var input =[];
 
-    var Bullet = function(x, y, heading){
+    var Bullet = function(x, y, heading, cannon){
         this.x = x;
         this.y = y;
         this.heading = heading;
         this.img = BULLETIMAGE;
         this.isDrawn = true;
+        this.cannon = cannon;
     };
 
     Bullet.prototype.draw = function(){
-        this.x+=BULLETSPEED * cos(this.heading);
-        this.y-=BULLETSPEED * sin(this.heading);
+        if(this.cannon === false){
+            this.x-=BULLETSPEED * cos(this.heading);
+            this.y-=BULLETSPEED * sin(this.heading);
+        }
+        else{
+            this.x-=(BULLETSPEED/2) * cos(this.heading);
+            this.y-=(BULLETSPEED/2) * sin(this.heading);
+        }
+
         image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, BULLETSIZE, BULLETSIZE);
 
     };
     Bullet.prototype.mayDraw = function(index){
       var x = this.x-CAMERARELATIVEX;
       var y = this.y-CAMERARELATIVEY;
-        if((x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y<=(4/3)*YDIMENTION && y>=-(1/3)*YDIMENTION)||
-           (x+CANNONSIZE<=(4/3)*XDIMENTION && x+SIZE>=-(1/3)*XDIMENTION && y<=(4/3)*XDIMENTION && y>=-(1/3)*YDIMENTION)||
-           (x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)||
-           (x+CANNONSIZE<=(4/3)*XDIMENTION && x+CANNONSIZE>=-(1/3)*XDIMENTION && y+CANNONSIZE<=(4/3)*XDIMENTION && y+CANNONSIZE>=-(1/3)*YDIMENTION)
-         ){
+        if(x<=(4/3)*XDIMENTION && x>=-(1/3)*XDIMENTION && y<=(4/3)*YDIMENTION && y>=-(1/3)*YDIMENTION){
             this.isDraw = true;
          }
          else{
@@ -105,21 +109,25 @@ var sketchProc = function(processingInstance) {
         this.readyToShoot = true;
         this.delay = 0;
         //represent the angle headed by the Player
-        this.heading = 270;
-        this.i = 0;
+        this.heading = Math.PI/2;
+        this.index = 0;
+        this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
     };
     Player.prototype.draw = function(){
-        this.x += this.xSpeed;
+        this.x -= this.xSpeed;
         this.y -= this.ySpeed;
         CAMERARELATIVEY-=this.ySpeed;
-        CAMERARELATIVEX+=this.xSpeed;
+        CAMERARELATIVEX-=this.xSpeed;
         pushMatrix();
         translate(this.x- CAMERARELATIVEX + PLAYERSIZE/2, this.y- CAMERARELATIVEY+ PLAYERSIZE/2);
         rotate(this.heading);
 
+
         image(this.img, -PLAYERSIZE/2, -PLAYERSIZE/2, PLAYERSIZE, PLAYERSIZE);
 
         popMatrix();
+
+        this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
         if(!this.readyToShoot){
             this.delay -= 1;
             if(this.delay <=0){
@@ -132,8 +140,9 @@ var sketchProc = function(processingInstance) {
         if(this.readyToShoot){
             this.readyToShoot = false;
             this.delay = BULLETDELAY;
-            var bullet = new Bullet(this.x, this.y, this.heading);
-            bullets[bullets.length] = bullet;
+            var bullet = new Bullet(this.bulletOutput[0], this.bulletOutput[1], this.heading, false);
+            bullets.push(bullet)
+
         }
 
     };
@@ -142,16 +151,17 @@ var sketchProc = function(processingInstance) {
         this.index+=1;
         if(this.index>=12){
             PLAYERSTATE = DEAD;
+            this.index = 0;
         }
     };
     var player = new Player(XDIMENTION/2,YDIMENTION/2);
 
     //defined here to have a definition of player
     Bullet.prototype.hitPlayer = function(){
-          return(bullet.x>=player.x && bullet.x<=player.x+PLAYERSIZE && bullet.y>=player.y && bullet.y<=player.y+PLAYERSIZE);
+          return(this.x>=player.x && this.x<=player.x+PLAYERSIZE && this.y>=player.y && this.y<=player.y+PLAYERSIZE);
     }
     Bullet.prototype.hitCannon = function(index){
-            return(bullet.x>=cannons[index].x && bullet.x<=cannons[index].x+CANNOONSIZE && bullet.y>=cannons[index] && bullet.y<=cannons[index]+CANNONSIZE);
+            return(this.x>=cannons[index].x && this.x<=cannons[index].x+CANNONSIZE && this.y>=cannons[index].y && this.y<=cannons[index].y+CANNONSIZE);
     }
 
 
@@ -162,21 +172,28 @@ var sketchProc = function(processingInstance) {
         this.heading = 90;
         this.readyToShoot = true;
         this.delay = 0;
-        this.isDrawn = false;
+        this.isDrawn = true;
         this.state = ALIVE;
         this.index = 0;
+        this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
+
     };
 
     Cannon.prototype.draw = function(){
+
         if(this.state === DEAD){
             this.explode();
+
         }
         else{
-            var dx = this.x - player.x;
-            var dy = this.y - player.y;
+            var dx = this.x - (player.x + PLAYERSIZE/2);
+            var dy = this.y - (player.y + PLAYERSIZE/2);
             var tan = dy/dx;
-            this.heading = atan(tan);
 
+            this.heading = atan(tan);
+            if(dx>0){
+                this.heading = (this.heading + Math.PI) % (2*Math.PI);
+            }
             pushMatrix();
             translate(this.x + CANNONSIZE/2 - CAMERARELATIVEX, this.y +CANNONSIZE/2 - CAMERARELATIVEY);
             rotate(this.heading);
@@ -186,8 +203,14 @@ var sketchProc = function(processingInstance) {
             if(this.delay>0){
                 this.delay -=1;
             }
-            if(this.delay <=0){
+            this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
+
+            var distance = Math.sqrt(((this.x + CANNONSIZE/2) - (player.x+PLAYERSIZE/2)) * ((this.x + CANNONSIZE/2) - (player.x+PLAYERSIZE/2)) +
+                                     ((this.y + CANNONSIZE/2) - (player.y+PLAYERSIZE/2)) * ((this.y + CANNONSIZE/2) - (player.y+PLAYERSIZE/2)));
+            if(this.delay <=0 && distance<YDIMENTION/2){
+
                 this.readyToShoot = true;
+
                 this.shoot();
             }
         }
@@ -195,15 +218,26 @@ var sketchProc = function(processingInstance) {
     Cannon.prototype.shoot = function(){
         if(this.isDrawn && this.readyToShoot){
             this.readyToShoot = false;
+            this.delay = 2*BULLETDELAY;
+            var bullet = new Bullet(this.x, this.y, Math.PI + this.heading, true);
+            bullets.push(bullet);
+        }
+        if(this.readyToShoot){
+            this.readyToShoot = false;
             this.delay = BULLETDELAY;
-            var bullet = new Bullet(this.x, this.y, this.heading);
-            bullets[bullets.length] = bullet;
+            var bullet = new Bullet(this.bulletOutput[0], this.bulletOutput[1], this.heading);
+            bullets.push(bullet)
+
         }
     };
 
     Cannon.prototype.explode = function(){
+      this.state = DEAD;
       image(EXPLOSION[this.index], this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
       this.index+=1;
+      if(this.index>=EXPLOSION.length){
+          this.state = REMOVECANNON;
+      }
     };
     Cannon.prototype.mayDraw = function(){
       var x = this.x-CAMERARELATIVEX;
@@ -220,7 +254,7 @@ var sketchProc = function(processingInstance) {
             this.isDraw = false;
          }
     };
-    var solveSystem(line1, line2){
+    var solveSystem = function(line1, line2){
         /*
         ax + b = y
         cx + d = y
@@ -261,35 +295,29 @@ var sketchProc = function(processingInstance) {
                           [(y1-y4)/(x1-x4),y4-(x4*(y1-y4)/(x1-x4))]];
     };
     Obstacle.prototype.draw = function(){
-        noStroke();
+
         fill(OBSTACLECOLOR[0], OBSTACLECOLOR[1], OBSTACLECOLOR[2]);
-        quad(x1, y1, x2, y2, x3, y3, x4, y4);
+        stroke(OBSTACLECOLOR[0], OBSTACLECOLOR[1], OBSTACLECOLOR[2]);
+        quad(this.x1 - CAMERARELATIVEX, this.y1 - CAMERARELATIVEY, this.x2 - CAMERARELATIVEX, this.y2 - CAMERARELATIVEY,
+             this.x3 - CAMERARELATIVEX, this.y3 - CAMERARELATIVEY, this.x4 - CAMERARELATIVEX, this.y4 - CAMERARELATIVEY);
     };
 
     Obstacle.prototype.isOn = function(x, y){
-        var toPoint = [[(y-y1)/(x-x1),y1-(x1*(y-y1)/(x-x1))],
-                       [(y-y2)/(x-x2),y2-(x2*(y-y2)/(x-x2))],
-                       [(y-y3)/(x-x3),y3-(x3*(y-y3)/(x-x3))],
-                       [(y-y4)/(x-x4),y4-(x4*(y-y4)/(x-x4))]];
 
-        for(var i = 0; i<toPoint.length; i++){
-            for(var j = 0; j<this.equations.length; j++){
-                var intersection = solveSystem(toPoint[i], this.equation[j]);
-                if(intersection!== PARAL && intersection!== COINSC){
-                    if(intersection[0] >= x && intersection[0]<=this.x[i] && intersection[1] >= x && intersection[1]<=this.y[i]||
-                       intersection[0] >= x && intersection[0]<=this.x[i] && intersection[1] <= x && intersection[1]>=this.y[i]||
-                       intersection[0] <= x && intersection[0]>=this.x[i] && intersection[1] >= x && intersection[1]<=this.y[i]||
-                       intersection[0] <= x && intersection[0]>=this.x[i] && intersection[1] <= x && intersection[1]>=this.y[i]){
-                          return false;
-                     }
-                 }
+        var on = false;
+        var j = 3;
+        for(var i = 0; i<4; j = i++){
+            if(((this.y[i]>y) !== (this.y[j]>y)) &&
+            (x < (this.x[j] - this.x[i]) * (y - this.y[i]) / (this.y[j] - this.y[i]) + this.x[i])){
+                 on = !on;
             }
         }
-        return true;
-    }
+        return on;
+
+    };
     Obstacle.prototype.playerColide = function(){
-        if((this.isOn(player.x, player.y) || this.isOn(player.x+PLAYERSIZE, player.y)||
-             this.isOn(player.x, player.y+PLAYERSIZE)||this.isOn(player.x+PLAYERSIZE, player.y+PLAYERSIZE))){
+        if((this.isOn(player.x+(PLAYERSIZE/4), player.y+(PLAYERSIZE/4)) || this.isOn(player.x+(3/4)*PLAYERSIZE, player.y+(PLAYERSIZE/4))||
+             this.isOn(player.x+(PLAYERSIZE/4), player.y+(3/4)*PLAYERSIZE)||this.isOn(player.x+(3/4)*PLAYERSIZE, player.y+(3/4)*PLAYERSIZE))){
                   return true;
              }
         else{
@@ -297,7 +325,7 @@ var sketchProc = function(processingInstance) {
         }
     };
     Obstacle.prototype.bulletColide = function(index){
-        if(this.isOn(bullets[index].x, bullets[index].y)){
+        if(this.isOn(bullets[index].x + BULLETSIZE/2, bullets[index].y + BULLETSIZE/2)){
             removeItem(bullets, index);
         }
 
@@ -305,8 +333,8 @@ var sketchProc = function(processingInstance) {
     };
     Obstacle.prototype.mayDraw = function(){
         for(var i = 0; i<this.x.length; i++){
-            if(x[i]-CAMERARELATIVEX<=(4/3)*XDIMENTION && x[i]-CAMERARELATIVEX>=-(1/3)*XDIMENTION &&
-               y[i]-CAMERARELATIVEY<=(4/3)*YDIMENTION && y[i]-CAMERARELATIVEY>=-(1/3)*YDIMENTION){
+            if(this.x[i]-CAMERARELATIVEX<=2*XDIMENTION && this.x[i]-CAMERARELATIVEX>=-2*XDIMENTION &&
+               this.y[i]-CAMERARELATIVEY<=2*YDIMENTION && this.y[i]-CAMERARELATIVEY>=-2*YDIMENTION){
                   this.isDrawn = true;
                   return;
                }
@@ -314,17 +342,17 @@ var sketchProc = function(processingInstance) {
         this.isDrawn = false;
     };
 
-    var Button = function(x, y, label, widht, height){
+    var Button = function(x, y, label, bWidth, bHeight){
           this.x = x;
           this.y = y;
           this.label = label;
-          this.width = width;
-          this.height = height;
+          this.width = bWidth;
+          this.height = bHeight;
           this.isDrawn = false;
     };
     Button.prototype.draw = function(){
         fill(BUTTONCOLOR[0], BUTTONCOLOR[1], BUTTONCOLOR[2]);
-        rect(this.x, this.y, this.width. this.height);
+        rect(this.x, this.y, this.width, this.height);
         noStroke();
         fill(BUTTONLABEL[0], BUTTONLABEL[1], BUTTONLABEL[2]);
         textAlign(CENTER, CENTER);
@@ -344,27 +372,27 @@ var sketchProc = function(processingInstance) {
         this.height = height;
         this.isDrawn = false;
     };
-    pauseButton.prototype.draw = function() {
+    PauseButton.prototype.draw = function() {
 			fill(153, 153, 255);
+      noStroke();
 			ellipse(this.x, this.y, this.width, this.height);
 			fill(51, 0, 102);
-			noStroke();
 			rect(this.x-this.width/4, this.y - this.height/4, this.width/8, (1/2)*this.height);
 			rect(this.x+this.width/8, this.y - this.height/4, this.width/8, (1/2)*this.height);
 			this.isDrawn = true;
 		};
-		pauseButton.prototype.isOver = function(x, y){
-			return(Math.sqrt((x-this.x)*(x-this.x) + (y - this.y)*(x-this.x))<=this.width/2);
+		PauseButton.prototype.isOver = function(x, y){
+			return(Math.sqrt((x-this.x)*(x-this.x) + (y - this.y)*(y-this.y))<=this.width/2);
 		};
 
     //instances of buttons used in the game
-		var PAUSE = new pauseButton(XDIMENTION * (3/4), BUTTONHEIGHT, BUTTONHEIGHT, BUTTONHEIGHT);
-		var PAUSECONTBUTTON = new Button(2*BUTTONWIDTH, (7/2)*BUTTONHEIGHT, "CONTINUE", BUTTONWIDTH*2, BUTTONHEIGHT);
-		var PAUSERESTBUTTON = new Button(2*BUTTONWIDTH, 5*BUTTONHEIGHT, "RESTART", BUTTONWIDTH*2, BUTTONHEIGHT);
-		var PAUSEQUITBUTTON = new Button(2*BUTTONWIDTH, (13/2)*BUTTONHEIGHT, "QUIT", BUTTONWIDTH*2, BUTTONHEIGHT);
-		var AGAINBUTTON = new Button(BUTTONWIDTH, 6*BUTTONHEIGHT, "TRY AGAIN", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
-		var QUITBUTTON = new Button(3*BUTTONWIDTH, 6*BUTTONHEIGHT, "QUIT", BUTTONWIDTH, BUTTONHEIGHT);
-		var STARTBUTTON = new Button(2*BUTTONWIDTH, 4*BUTTONHEIGHT, "START", BUTTONWIDTH*(3/2), BUTTONHEIGHT*(3/2));
+		var PAUSE = new PauseButton(XDIMENTION * (3/4), BUTTONHEIGHT, BUTTONHEIGHT, BUTTONHEIGHT);
+		var PAUSECONTBUTTON = new Button(1*BUTTONWIDTH, (7/2)*BUTTONHEIGHT, "CONTINUE", BUTTONWIDTH*2, BUTTONHEIGHT);
+		var PAUSERESTBUTTON = new Button(1*BUTTONWIDTH, 5*BUTTONHEIGHT, "RESTART", BUTTONWIDTH*2, BUTTONHEIGHT);
+		var PAUSEQUITBUTTON = new Button(1*BUTTONWIDTH, (13/2)*BUTTONHEIGHT, "QUIT", BUTTONWIDTH*2, BUTTONHEIGHT);
+		var AGAINBUTTON = new Button(0.5*BUTTONWIDTH, 6*BUTTONHEIGHT, "TRY AGAIN", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
+		var QUITBUTTON = new Button(2.5*BUTTONWIDTH, 6*BUTTONHEIGHT, "QUIT", BUTTONWIDTH, BUTTONHEIGHT);
+		var STARTBUTTON = new Button(1*BUTTONWIDTH, 4*BUTTONHEIGHT, "START", BUTTONWIDTH*(3/2), BUTTONHEIGHT*(3/2));
 		var CONTINUEBUTTON = new Button(2*BUTTONWIDTH, 6*BUTTONHEIGHT, "CONTINUE", (3/2)*BUTTONWIDTH, BUTTONHEIGHT);
 
 		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON];
@@ -372,11 +400,12 @@ var sketchProc = function(processingInstance) {
     var generateField = function(){
 
         var u = XDIMENTION/8; // -> u: default unity
-        obstacles = [new Obstacle(0*u, YDIMENTION - 3*u, 3*u, YDIMENTION - 3*u, 2*u, YDIMENTION - 0*u, 0*u, YDIMENTION - 0*u),
-                     new Obstacle(0*u, YDIMENTION - 6*u, 2*u, YDIMENTION - 6*u, 3*u, YDIMENTION - 3*u, 0*u, YDIMENTION - 3*u),
+
+        obstacles = [new Obstacle(-5*u, YDIMENTION - 3*u, 3*u, YDIMENTION - 3*u, 2*u, YDIMENTION - 0*u, -5*u, YDIMENTION - 0*u),
+                     new Obstacle(-5*u, YDIMENTION - 6*u, 2*u, YDIMENTION - 6*u, 3*u, YDIMENTION - 3*u, -5*u, YDIMENTION - 3*u),
                      new Obstacle(6*u, YDIMENTION - 7*u, 10*u, YDIMENTION - 8.5*u, 10*u, YDIMENTION - 0*u, 5*u, YDIMENTION - 0*u),
-                     new Obstacle(0*u, YDIMENTION - 10*u, 5*u, YDIMENTION - 10*u, 2*u, YDIMENTION - 6*u, 6*u, YDIMENTION - 0*u),
-                     new Obstacle(0*u, YDIMENTION - 15*u, 15*u, YDIMENTION - 15*u, 16*u, YDIMENTION - 10*u, 0*u, YDIMENTION - 10*u),
+                     new Obstacle(-5*u, YDIMENTION - 10*u, 5*u, YDIMENTION - 10*u, 2*u, YDIMENTION - 6*u, -5*u, YDIMENTION - 6*u),
+                     new Obstacle(-1*u, YDIMENTION - 15*u, 15*u, YDIMENTION - 15*u, 16*u, YDIMENTION - 10*u, -1*u, YDIMENTION - 10*u),
                      new Obstacle(10*u, YDIMENTION - 8.5*u, 14*u, YDIMENTION - 7*u, 14*u, YDIMENTION - 0*u, 10*u, YDIMENTION - 0*u),
                      new Obstacle(14*u, YDIMENTION - 7*u, 20*u, YDIMENTION - 7*u, 20*u, YDIMENTION - 0*u, 14*u, YDIMENTION - 0*u),
                      new Obstacle(15*u, YDIMENTION - 15*u, 19*u, YDIMENTION - 12*u, 18*u, YDIMENTION - 9*u, 16*u, YDIMENTION - 10*u),
@@ -387,20 +416,27 @@ var sketchProc = function(processingInstance) {
                      new Obstacle(0*u, YDIMENTION - 18*u, 14*u, YDIMENTION - 18*u, 15*u, YDIMENTION - 15*u, 0*u, YDIMENTION - 15*u),
                      new Obstacle(0*u, YDIMENTION - 20*u, 10*u, YDIMENTION - 20*u, 14*u, YDIMENTION - 18*u, 0*u, YDIMENTION - 18*u),
                      new Obstacle(17*u, YDIMENTION - 29*u, 30*u, YDIMENTION - 29*u, 30*u, YDIMENTION - 22*u, 15*u, YDIMENTION - 22*u),
-                     new Obstacle(9*u, YDIMENTION - 29*u, 17*u, YDIMENTION - 29*u, 15*u, YDIMENTION - 22*u, 8.5*u, YDIMENTION - 22.5*u),
+                     new Obstacle(9*u, YDIMENTION - 29*u, 17*u, YDIMENTION - 29*u, 15*u, YDIMENTION - 22*u, 8.5*u, YDIMENTION - 26*u),
                      new Obstacle(6*u, YDIMENTION - 25*u, 8*u, YDIMENTION - 25*u, 10*u, YDIMENTION - 20*u, 4*u, YDIMENTION - 20*u),
                      new Obstacle(1*u, YDIMENTION - 21*u, 5*u, YDIMENTION - 21*u, 4*u, YDIMENTION - 20*u, 1*u, YDIMENTION - 20*u),
                      new Obstacle(0*u, YDIMENTION - 24*u, 1*u, YDIMENTION - 21*u, 1*u, YDIMENTION - 20*u, 0*u, YDIMENTION - 20*u),
-                     new Obstacle(8*u, YDIMENTION - 34*u, 9*u, YDIMENTION - 29*u, 8.5*u, YDIMENTION - 25.5*u, YDIMENTION - 6*u, 30*u),
+                     new Obstacle(8*u, YDIMENTION - 34*u, 9*u, YDIMENTION - 29*u, 8.5*u, YDIMENTION - 26*u, 6*u, YDIMENTION - 30*u),
                      new Obstacle(5*u, YDIMENTION - 34*u, 8*u, YDIMENTION - 34*u, 6*u, YDIMENTION - 30*u, 4*u, YDIMENTION - 30*u),
                      new Obstacle(0*u, YDIMENTION - 42*u, 4*u, YDIMENTION - 42*u, 4*u, YDIMENTION - 36*u, 0*u, YDIMENTION - 30*u),
                      new Obstacle(4*u, YDIMENTION - 42*u, 11*u, YDIMENTION - 42*u, 11*u, YDIMENTION - 36*u, 4*u, YDIMENTION - 36*u),
                      new Obstacle(11*u, YDIMENTION - 42*u, 16*u, YDIMENTION - 42*u, 16*u, YDIMENTION - 38*u, 11*u, YDIMENTION - 38*u),
                      new Obstacle(11*u, YDIMENTION - 36*u, 15*u, YDIMENTION - 35*u, 14*u, YDIMENTION - 32*u, 12*u, YDIMENTION - 32*u),
                      new Obstacle(11*u, YDIMENTION - 38*u, 16*u, YDIMENTION - 38*u, 15*u, YDIMENTION - 35*u, 11*u, YDIMENTION - 36*u),
-                     new Obstacle(16*u, YDIMENTION - 42*u, 23*u, YDIMENTION - 42*u, 23*u, YDIMENTION - 40*u, 16*u, YDIMENTION - 38*u),
-                     new Obstacle(23*u, YDIMENTION - 42*u, 30*u, YDIMENTION - 42*u, 30*u, YDIMENTION - 40*u, 23*u, YDIMENTION - 40*u),
-                     new Obstacle(23*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 29*u, 23*u, YDIMENTION - 29*u)];
+                     new Obstacle(16*u, YDIMENTION - 46*u, 23*u, YDIMENTION - 46*u, 23*u, YDIMENTION - 40*u, 16*u, YDIMENTION - 38*u),
+                     new Obstacle(23*u, YDIMENTION - 46*u, 30*u, YDIMENTION - 46*u, 30*u, YDIMENTION - 40*u, 23*u, YDIMENTION - 40*u),
+                     new Obstacle(23*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 29*u, 23*u, YDIMENTION - 29*u),
+                     //frontiers
+                     new Obstacle(-5*u, YDIMENTION - 0*u, 10*u, YDIMENTION - 0*u, 10*u, YDIMENTION - (-5)*u, 0*u, YDIMENTION - (-5)*u),
+                     new Obstacle(-5*u, YDIMENTION - 30*u, 0*u, YDIMENTION - 30*u, 0*u, YDIMENTION - 24*u, -5*u, YDIMENTION - 24*u),
+                     new Obstacle(-5*u, YDIMENTION - 42*u, 0*u, YDIMENTION - 42*u, 0*u, YDIMENTION - 30*u, -5*u, YDIMENTION - 30*u),
+                     new Obstacle(-5*u, YDIMENTION - 24*u, 0*u, YDIMENTION - 24*u, 0*u, YDIMENTION - 19*u, -5*u, YDIMENTION - 19*u),
+
+                   ];
 
         cannons = [new Cannon(5*u, YDIMENTION - (10*u)),
                    new Cannon(18.5*u, YDIMENTION - (10.5*u)),
@@ -428,6 +464,7 @@ var sketchProc = function(processingInstance) {
                    new Cannon(18*u, YDIMENTION - (34*u)),
                    new Cannon(17*u+CANNONSIZE, YDIMENTION - (33*u)),
                    new Cannon(15*u, YDIMENTION - (29*u + CANNONSIZE))];
+        bullets =[];
     };
 
     var startScene = function(){
@@ -439,21 +476,26 @@ var sketchProc = function(processingInstance) {
         text("THE TRAVELLER", XDIMENTION/2, YDIMENTION/3);
 
         image(PLAYERIMAGE, XDIMENTION * (3/4), YDIMENTION*(2/3), 2*PLAYERSIZE, 2*PLAYERSIZE);
+        image(BULLETIMAGE, XDIMENTION * (3/4) - PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
+        image(BULLETIMAGE, XDIMENTION * (3/4) - 3*PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
+        image(BULLETIMAGE, XDIMENTION * (3/4) - 5*PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
+        image(BULLETIMAGE, XDIMENTION * (3/4) - 7*PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
     };
 
     var deadScene = function(){
         background(0);
         AGAINBUTTON.draw();
         QUITBUTTON.draw();
+
+        fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
         textAlign(CENTER, CENTER);
         textSize((3/2)*MESSAGESIZE);
-        text("YOU DEAD!!");
+        text("YOU DEAD!!", XDIMENTION/2, YDIMENTION/2);
     };
 
     var pauseScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
-
-        BEFOREPAUSE = PLAYERSTATE;
+;
 
         PAUSECONTBUTTON.draw();
         PAUSERESTBUTTON.draw();
@@ -492,6 +534,11 @@ var sketchProc = function(processingInstance) {
         CAMERARELATIVEY = 0;
         CAMERARELATIVEX = 0;
         generateField();
+        player.x = XDIMENTION/2;
+        player.y = YDIMENTION/2;
+        player.xSpeed = 0;
+        player.ySpeed = 0;
+        player.heading = Math.PI/2;
         PLAYERSTATE = ALIVE;
     };
 
@@ -506,7 +553,7 @@ var sketchProc = function(processingInstance) {
           }
         }
         else{
-            for(var i = 0; i<lis.length; i++){
+            for(var i = 0; i<list.length; i++){
                 list[i].mayDraw();
             }
         }
@@ -525,10 +572,10 @@ var sketchProc = function(processingInstance) {
 
     var turn = function(dir){
         if(dir === "Right"){
-            player.direction = (360 + (player.direction - TURNINGSPEED))%360;
+            player.heading = (player.heading + TURNINGSPEED)%(2*Math.PI);
         }
         else if(dir === "Left"){
-            player.direction = (player.direction + TURNINGSPEED)%360;
+            player.heading = (2*Math.PI + (player.heading - TURNINGSPEED))%(2*Math.PI);
         }
 
     };
@@ -546,35 +593,52 @@ var sketchProc = function(processingInstance) {
             }
             for(var bul = 0; bul<bullets.length; bul++){
                 //check and handle bullet collision eith an obstacle
-                obstacle[obst].bulletColide(bul);
+                obstacles[obst].bulletColide(bul);
             }
         }
     };
 
     var checkHits = function(){
+        var hitted = false;
         for(var bul = 0; bul<bullets.length; bul++){
             if(bullets[bul].hitPlayer()){
                 PLAYERSTATE = KILLED;
                 removeItem(bullets, bul);
             }
-            for(var can = 0; can< cannons.length; can++){
-                if(bullets[bul].hitCannon(can)){
-                    cannon[can].explode();
-                    removeItem(bullets, bul);
-                    removeItem(cannons, can);
-                }
+
+            else{
+               for(var can = 0; can< cannons.length && !hitted; can++){
+                    if(bullets[bul].hitCannon(can)){
+                        cannons[can].explode();
+                        removeItem(bullets, bul);
+                        hitted = true;
+                    }
+              }
             }
         }
     };
 
 
 
-    var drawAllObjects = function(list){
-        for(var i = 0; i<list.length; i++){
-            if(list[i].isDrawn){
-                list[i].draw();
+    var drawAllObjects = function(list, cannon){
+        if(cannon === false){
+            for(var i = 0; i<list.length; i++){
+                if(list[i].isDrawn){
+                    list[i].draw();
+                }
             }
         }
+        else{
+          for(var i = 0; i<list.length; i++){
+              if(list[i].state === REMOVECANNON){
+                  removeItem(cannons, i);
+              }
+              else if(list[i].isDrawn){
+                  list[i].draw();
+              }
+          }
+        }
+
     };
 
     var drawField = function(){
@@ -609,10 +673,10 @@ var sketchProc = function(processingInstance) {
                     player.xSpeed = 0;
                 }
                 if(player.xSpeed>0){
-                    player.xSpeed -= ATRITTION * cos(player.heading);
+                    player.xSpeed -= ATRITTION * Math.abs(cos(player.heading));
                 }
                 else if (player.xSpeed<0){
-                    player.xSpeed += ATRITTION * cos(player.heading);
+                    player.xSpeed += ATRITTION * Math.abs(cos(player.heading));
                 }
             }
 
@@ -621,10 +685,10 @@ var sketchProc = function(processingInstance) {
                     player.ySpeed = 0;
                 }
                 if(player.ySpeed>0){
-                    player.ySpeed -= ATRITTION * sin(player.heading);
+                    player.ySpeed -= ATRITTION * Math.abs(sin(player.heading));
                 }
                 else if (player.ySpeed<0){
-                    player.ySpeed += ATRITTION * sin(player.heading);
+                    player.ySpeed += ATRITTION * Math.abs(sin(player.heading));
                 }
             }
         }
@@ -634,7 +698,7 @@ var sketchProc = function(processingInstance) {
 
         CURRENTFRAME++;
         if(CURRENTFRAME >= FPS){
-            checkDrawables(cannons, false);
+            //checkDrawables(cannons, false);
             checkDrawables(obstacles, false);
             checkDrawables(bullets, true);
             CURRENTFRAME = 0;
@@ -654,11 +718,10 @@ var sketchProc = function(processingInstance) {
 			for(var i = 0; i<BUTTONS.length; i++){
 				if(BUTTONS[i].isDrawn && BUTTONS[i].isOver(mouseX, mouseY)){
 					if(i === 0){//pause
-						BEFOREPAUSE = PLAYERSTATE;
 						PLAYERSTATE = PAUSED;
 					}
 					else if(i === 1){//continue from pause
-						PLAYERSTATE = BEFOREPAUSE;
+						PLAYERSTATE = ALIVE;
 
 					}
 					else if(i===2){//restart from pause
@@ -688,7 +751,7 @@ var sketchProc = function(processingInstance) {
 		};
 
 
-    draw = function{
+    draw = function(){
         if(PLAYERSTATE === ALIVE){
             gameRunning();
         }
