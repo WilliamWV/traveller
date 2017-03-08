@@ -175,7 +175,7 @@ var sketchProc = function(processingInstance) {
         this.isDrawn = true;
         this.state = ALIVE;
         this.index = 0;
-        this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
+        this.bulletOutput=[this.x+(CANNONSIZE/2) + CANNONSIZE*(4/5)*cos(this.heading), (this.y+CANNONSIZE/2) + CANNONSIZE*(4/5)*sin(this.heading)];
 
     };
 
@@ -203,7 +203,7 @@ var sketchProc = function(processingInstance) {
             if(this.delay>0){
                 this.delay -=1;
             }
-            this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
+            this.bulletOutput=[this.x+(CANNONSIZE/2) + CANNONSIZE*(4/5)*cos(this.heading), (this.y+CANNONSIZE/2) + CANNONSIZE*(4/5)*sin(this.heading)];
 
             var distance = Math.sqrt(((this.x + CANNONSIZE/2) - (player.x+PLAYERSIZE/2)) * ((this.x + CANNONSIZE/2) - (player.x+PLAYERSIZE/2)) +
                                      ((this.y + CANNONSIZE/2) - (player.y+PLAYERSIZE/2)) * ((this.y + CANNONSIZE/2) - (player.y+PLAYERSIZE/2)));
@@ -219,15 +219,8 @@ var sketchProc = function(processingInstance) {
         if(this.isDrawn && this.readyToShoot){
             this.readyToShoot = false;
             this.delay = 2*BULLETDELAY;
-            var bullet = new Bullet(this.x, this.y, Math.PI + this.heading, true);
+            var bullet = new Bullet(this.bulletOutput[0], this.bulletOutput[1], Math.PI + this.heading, true);
             bullets.push(bullet);
-        }
-        if(this.readyToShoot){
-            this.readyToShoot = false;
-            this.delay = BULLETDELAY;
-            var bullet = new Bullet(this.bulletOutput[0], this.bulletOutput[1], this.heading);
-            bullets.push(bullet)
-
         }
     };
 
