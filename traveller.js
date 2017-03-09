@@ -17,8 +17,8 @@ var sketchProc = function(processingInstance) {
     var BULLETSIZE = PLAYERSIZE/10;
 
     var CURRENTFRAME = 0;
-    var EARTHPOSX = 100*XDIMENTION;
-    var EARTHPOSY = 20*YDIMENTION;
+    var EARTHPOSX;
+    var EARTHPOSY;
     var EARTHSIZE = 2*XDIMENTION;
     //Possible states within the game
     var DEAD = 0;
@@ -65,6 +65,7 @@ var sketchProc = function(processingInstance) {
                      loadImage("./img/Traveller/Explosion/EXPL11.png"),
                      loadImage("./img/Traveller/Explosion/EXPL12.png")];
 
+    var EARTHIMAGE = loadImage("./igm/Traveller/Earth.png");
     var COINSC = 1;
     var PARAL = 2
     var CAMERARELATIVEX = 0;
@@ -469,6 +470,8 @@ var sketchProc = function(processingInstance) {
                    new Cannon(19.5*u, YDIMENTION - (33*u)),
                    new Cannon(15*u, YDIMENTION - (29*u + CANNONSIZE))];
         bullets =[];
+        EARTHPOSX = 50*u;
+        EARTHPOSY = YDIMENTION - 39*u;
     };
 
     var startScene = function(){
@@ -640,7 +643,12 @@ var sketchProc = function(processingInstance) {
         }
     };
 
-
+    var drawEarth = function(){
+        if(Math.abs(EARTHPOSX - (CAMERARELATIVEX + XDIMENTION/2))<EARTHPOSX - 3*XDIMENTION &&
+           Math.abs(EARTHPOSY - (CAMERARELATIVEY + YDIMENTION/2))<EARTHPOSY - 3*YDIMENTION){
+              image(EARTHIMAGE, EARTHPOSX-EARTHSIZE/2, EARTHPOSY-EARTHSIZE/2, EATHSIZE, EARTHSIZE);
+          }
+    };
 
     var drawAllObjects = function(list, cannon){
         if(cannon === false){
@@ -667,9 +675,16 @@ var sketchProc = function(processingInstance) {
           drawAllObjects(obstacles);
           drawAllObjects(cannons);
           drawAllObjects(bullets);
-
+          drawEarth();
     };
 
+    var testWin = function(){
+        var distanceHome = Math.sqrt((EARTHPOSX- player.x)*(EARTHPOSX - player.x) + (EARTHPOSY - player.y)*(EARTHPOSY - player.y));
+        if(distanceHome<EARTHSIZE){
+            return true;
+        }
+        return false;
+    };
     var gameRunning = function(){
         background(BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0]);
         drawField();
@@ -717,7 +732,9 @@ var sketchProc = function(processingInstance) {
         checkHits();
         checkColision();
         checkFinal();
-
+        if(testWin()){
+            PLAYERSTATE = WINNER;
+        }
         CURRENTFRAME++;
         if(CURRENTFRAME >= FPS){
             //checkDrawables(cannons, false);
