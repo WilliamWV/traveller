@@ -705,27 +705,32 @@ var sketchProc = function(processingInstance) {
         }
 
         if(!input[UP]){
-            if(player.xSpeed!=0){
-                if(Math.abs(player.xSpeed)<ATRITTION){
-                    player.xSpeed = 0;
+            var currentSpeed = Math.sqrt((player.xSpeed)*(player.xSpeed) + (player.ySpeed)*(player.ySpeed));
+            if(currentSpeed!=0){
+                var cossine = player.xSpeed/currentSpeed;
+                var sine = player.ySpeed/currentSpeed;
+                if(player.xSpeed!=0){
+                    if(Math.abs(player.xSpeed)<ATRITTION){
+                        player.xSpeed = 0;
+                    }
+                    if(player.xSpeed>0){
+                        player.xSpeed -= ATRITTION * Math.abs(cossine);
+                    }
+                    else if (player.xSpeed<0){
+                        player.xSpeed += ATRITTION * Math.abs(cossine);
+                    }
                 }
-                if(player.xSpeed>0){
-                    player.xSpeed -= ATRITTION * Math.abs(cos(player.heading));
-                }
-                else if (player.xSpeed<0){
-                    player.xSpeed += ATRITTION * Math.abs(cos(player.heading));
-                }
-            }
 
-            if(player.ySpeed!=0){
-                if(Math.abs(player.ySpeed)<ATRITTION){
-                    player.ySpeed = 0;
-                }
-                if(player.ySpeed>0){
-                    player.ySpeed -= ATRITTION * Math.abs(sin(player.heading));
-                }
-                else if (player.ySpeed<0){
-                    player.ySpeed += ATRITTION * Math.abs(sin(player.heading));
+                if(player.ySpeed!=0){
+                    if(Math.abs(player.ySpeed)<ATRITTION){
+                        player.ySpeed = 0;
+                    }
+                    if(player.ySpeed>0){
+                        player.ySpeed -= ATRITTION * Math.abs(sine);
+                    }
+                    else if (player.ySpeed<0){
+                        player.ySpeed += ATRITTION * Math.abs(sine);
+                    }
                 }
             }
         }
