@@ -17,9 +17,6 @@ var sketchProc = function(processingInstance) {
     var BULLETSIZE = PLAYERSIZE/10;
 
     var CURRENTFRAME = 0;
-    var EARTHPOSX;
-    var EARTHPOSY;
-    var EARTHSIZE = 2*XDIMENTION;
     //Possible states within the game
     var DEAD = 0;
     var ALIVE = 1;
@@ -65,11 +62,16 @@ var sketchProc = function(processingInstance) {
                      loadImage("./img/Traveller/Explosion/EXPL11.png"),
                      loadImage("./img/Traveller/Explosion/EXPL12.png")];
 
-    var EARTHIMAGE = loadImage("./igm/Traveller/Earth.png");
     var COINSC = 1;
     var PARAL = 2
     var CAMERARELATIVEX = 0;
     var CAMERARELATIVEY = 0;
+
+    var FINISHLINETLX;
+    var FINISHLINETLY;
+    var FINISHLINEBRX;
+    var FINISHLINEBRY;
+
     var bullets = [];
     var obstacles = [];
     var cannons = [];
@@ -470,8 +472,10 @@ var sketchProc = function(processingInstance) {
                    new Cannon(19.5*u, YDIMENTION - (33*u)),
                    new Cannon(15*u, YDIMENTION - (29*u + CANNONSIZE))];
         bullets =[];
-        EARTHPOSX = 50*u;
-        EARTHPOSY = YDIMENTION - 39*u;
+        FINISHLINETLX = 22 *u;
+        FINISHLINETLY = YDIMENTION - 40*u;
+        FINISHLINEBRX = 22.5 * u;
+        FINISHLINEBRY = YDIMENTION - 38*u - YDIMENTION/20;
     };
 
     var startScene = function(){
@@ -605,12 +609,6 @@ var sketchProc = function(processingInstance) {
 
     };
 
-    var checkFinal = function(){
-        if(Math.sqrt((player.x-EARTHPOSX)*(player.x-EARTHPOSX) + (player.y-EARTHPOSY)*(player.y-EARTHPOSY))<=EARTHSIZE/2){
-            PLAYERSTATE = WINNER;
-        }
-    }
-
     var checkColision = function(){
         for(var obst = 0; obst<obstacles.length; obst++){
             if(obstacles[obst].playerColide()){
@@ -643,11 +641,18 @@ var sketchProc = function(processingInstance) {
         }
     };
 
-    var drawEarth = function(){
-        if(Math.abs(EARTHPOSX - (CAMERARELATIVEX + XDIMENTION/2))<EARTHPOSX - 3*XDIMENTION &&
-           Math.abs(EARTHPOSY - (CAMERARELATIVEY + YDIMENTION/2))<EARTHPOSY - 3*YDIMENTION){
-              image(EARTHIMAGE, EARTHPOSX-EARTHSIZE/2, EARTHPOSY-EARTHSIZE/2, EATHSIZE, EARTHSIZE);
-          }
+    var drawFinishLine = function(){
+            noStroke();
+            fill(255, 255, 255);
+            var width = FINISHLINEBRX - FINISHLINETLX;
+            var height = FINISHLINEBRY - FINISHLINETLY;
+            rect(FINISHLINETLX -CAMERARELATIVEX, FINISHLINETLY - CAMERARELATIVEY, width, height);
+            fill(0, 0, 0);
+            rect(FINISHLINETLX - CAMERARELATIVEX, FINISHLINETLY - CAMERARELATIVEY, width/2, height/5);
+            rect(FINISHLINETLX + width/2 - CAMERARELATIVEX, FINISHLINETLY+height/5 - CAMERARELATIVEY, width/2, height/5);
+            rect(FINISHLINETLX - CAMERARELATIVEX, FINISHLINETLY+height*(2/5) - CAMERARELATIVEY, width/2, height/5);
+            rect(FINISHLINETLX + width/2 - CAMERARELATIVEX, FINISHLINETLY+height*(3/5) - CAMERARELATIVEY, width/2, height/5);
+            rect(FINISHLINETLX - CAMERARELATIVEX, FINISHLINETLY+height*(4/5) - CAMERARELATIVEY, width/2, height/5);
     };
 
     var drawAllObjects = function(list, cannon){
@@ -672,21 +677,26 @@ var sketchProc = function(processingInstance) {
     };
 
     var drawField = function(){
+          drawFinishLine();
           drawAllObjects(obstacles);
           drawAllObjects(cannons);
           drawAllObjects(bullets);
-          drawEarth();
+
     };
 
     var testWin = function(){
-        var distanceHome = Math.sqrt((EARTHPOSX- player.x)*(EARTHPOSX - player.x) + (EARTHPOSY - player.y)*(EARTHPOSY - player.y));
-        if(distanceHome<EARTHSIZE){
+
+        if((player.x > FINISHLINETLX && player.x<FINISHLINEBRX && player.y > FINISHLINETLY && player.y<FINISHLINEBRY)||
+           (player.x + PLAYERSIZE> FINISHLINETLX && player.x + PLAYERSIZE<FINISHLINEBRX && player.y > FINISHLINETLY && player.y<FINISHLINEBRY)||
+           (player.x > FINISHLINETLX && player.x<FINISHLINEBRX && player.y + PLAYERSIZE> FINISHLINETLY && player.y + PLAYERSIZE<FINISHLINEBRY)||
+           (player.x + PLAYERSIZE> FINISHLINETLX && player.x + PLAYERSIZE<FINISHLINEBRX && player.y + PLAYERSIZE> FINISHLINETLY && player.y + PLAYERSIZE<FINISHLINEBRY)){
             return true;
         }
         return false;
     };
     var gameRunning = function(){
         background(BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0]);
+
         drawField();
         player.draw();
         PAUSE.draw();
@@ -736,7 +746,6 @@ var sketchProc = function(processingInstance) {
         }
         checkHits();
         checkColision();
-        checkFinal();
         if(testWin()){
             PLAYERSTATE = WINNER;
         }
