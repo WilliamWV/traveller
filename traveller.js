@@ -10,6 +10,8 @@ var sketchProc = function(processingInstance) {
     var ATRITTION = SPEED/FPS;
     var BULLETDELAY = FPS/2;
     var BULLETSPEED = 10;
+    var CANNONBULLETSPEED = BULLETSPEED/2;
+    var CANNONDELAY = BULLETDELAY/2;
     var PLAYERSIZE = XDIMENTION /10;
     var CANNONSIZE = XDIMENTION / 15;
     var BULLETSIZE = PLAYERSIZE/10;
@@ -28,6 +30,12 @@ var sketchProc = function(processingInstance) {
     var WAITTING = 6;
     var PLAYERSTATE = WAITTING;
     var REMOVECANNON = 42;
+
+    var EASY = 0;
+    var NORMAL = 1;
+    var HARD = 2;
+    var MODE = NORMAL;
+
 
     var MESSAGESIZE = 24;
     var BUTTONWIDTH = XDIMENTION/4;
@@ -81,8 +89,8 @@ var sketchProc = function(processingInstance) {
             this.y-=BULLETSPEED * sin(this.heading);
         }
         else{
-            this.x-=(BULLETSPEED/2) * cos(this.heading);
-            this.y-=(BULLETSPEED/2) * sin(this.heading);
+            this.x-=(CANNONBULLETSPEED) * cos(this.heading);
+            this.y-=(CANNONBULLETSPEED) * sin(this.heading);
         }
 
         image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, BULLETSIZE, BULLETSIZE);
@@ -218,7 +226,7 @@ var sketchProc = function(processingInstance) {
     Cannon.prototype.shoot = function(){
         if(this.isDrawn && this.readyToShoot){
             this.readyToShoot = false;
-            this.delay = 2*BULLETDELAY;
+            this.delay = CANNONDELAY;
             var bullet = new Bullet(this.bulletOutput[0], this.bulletOutput[1], Math.PI + this.heading, true);
             bullets.push(bullet);
         }
@@ -385,10 +393,12 @@ var sketchProc = function(processingInstance) {
 		var PAUSEQUITBUTTON = new Button(1*BUTTONWIDTH, (13/2)*BUTTONHEIGHT, "QUIT", BUTTONWIDTH*2, BUTTONHEIGHT);
 		var AGAINBUTTON = new Button(0.5*BUTTONWIDTH, 6*BUTTONHEIGHT, "TRY AGAIN", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
 		var QUITBUTTON = new Button(2.5*BUTTONWIDTH, 6*BUTTONHEIGHT, "QUIT", BUTTONWIDTH, BUTTONHEIGHT);
-		var STARTBUTTON = new Button(1*BUTTONWIDTH, 4*BUTTONHEIGHT, "START", BUTTONWIDTH*(3/2), BUTTONHEIGHT*(3/2));
+		var STARTBUTTON = new Button(1*BUTTONWIDTH, 2*BUTTONHEIGHT, "EASY MODE", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
+    var NORMALBUTTON = new Button(1*BUTTONWIDTH, 3.5*BUTTONHEIGHT, "NORMAL MODE", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
+    var HARDBUTTON = new Button(1*BUTTONWIDTH, 5*BUTTONHEIGHT, "HARCORE", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
 		var CONTINUEBUTTON = new Button(2*BUTTONWIDTH, 6*BUTTONHEIGHT, "CONTINUE", (3/2)*BUTTONWIDTH, BUTTONHEIGHT);
 
-		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON];
+		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON, NORMALBUTTON, HARDBUTTON];
 
     var generateField = function(){
 
@@ -420,6 +430,7 @@ var sketchProc = function(processingInstance) {
                      new Obstacle(11*u, YDIMENTION - 42*u, 16*u, YDIMENTION - 42*u, 16*u, YDIMENTION - 38*u, 11*u, YDIMENTION - 38*u),
                      new Obstacle(11*u, YDIMENTION - 36*u, 15*u, YDIMENTION - 35*u, 14*u, YDIMENTION - 32*u, 12*u, YDIMENTION - 32*u),
                      new Obstacle(11*u, YDIMENTION - 38*u, 16*u, YDIMENTION - 38*u, 15*u, YDIMENTION - 35*u, 11*u, YDIMENTION - 36*u),
+                     new Obstacle(21*u, YDIMENTION - 38*u, 23*u, YDIMENTION - 39*u, 23*u, YDIMENTION - 29*u, 19*u, YDIMENTION - 29*u),
                      new Obstacle(16*u, YDIMENTION - 46*u, 23*u, YDIMENTION - 46*u, 23*u, YDIMENTION - 40*u, 16*u, YDIMENTION - 38*u),
                      new Obstacle(23*u, YDIMENTION - 46*u, 30*u, YDIMENTION - 46*u, 30*u, YDIMENTION - 40*u, 23*u, YDIMENTION - 40*u),
                      new Obstacle(23*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 39*u, 30*u, YDIMENTION - 29*u, 23*u, YDIMENTION - 29*u),
@@ -435,7 +446,7 @@ var sketchProc = function(processingInstance) {
                    new Cannon(18.5*u, YDIMENTION - (10.5*u)),
                    new Cannon(22*u- CANNONSIZE, YDIMENTION - (9*u)),
                    new Cannon(15*u, YDIMENTION - (15*u+CANNONSIZE)),
-                   new Cannon(14*u, YDIMENTION - (17*u)),
+                   new Cannon(14*u, YDIMENTION - (17.8*u)),
                    new Cannon(17*u, YDIMENTION - (22*u)),
                    new Cannon(18*u, YDIMENTION - (22*u)),
                    new Cannon(19*u, YDIMENTION - (22*u)),
@@ -445,17 +456,17 @@ var sketchProc = function(processingInstance) {
                    new Cannon(1*u, YDIMENTION - (21*u+CANNONSIZE)),
                    new Cannon(0.5*u, YDIMENTION - (23*u)),
                    new Cannon(6*u-CANNONSIZE, YDIMENTION - (30*u)),
-                   new Cannon(2*u, YDIMENTION - (23*u)),
-                   new Cannon(3*u, YDIMENTION - (24.5*u)),
-                   new Cannon(12*u-CANNONSIZE, YDIMENTION - (35*u)),
+                   new Cannon(1*u, YDIMENTION - (32*u)),
+                   new Cannon(2.3*u, YDIMENTION - (34*u)),
+                   new Cannon(11*u, YDIMENTION - (35*u)),
                    new Cannon(14*u, YDIMENTION - (33*u)),
-                   new Cannon(15*u, YDIMENTION - (35*u)),
-                   new Cannon(16*u, YDIMENTION - (37*u)),
-                   new Cannon(18*u, YDIMENTION - (38.5*u)),
-                   new Cannon(20*u, YDIMENTION - (39*u)),
-                   new Cannon(19*u-CANNONSIZE, YDIMENTION - (37*u)),
-                   new Cannon(18*u, YDIMENTION - (34*u)),
-                   new Cannon(17*u+CANNONSIZE, YDIMENTION - (33*u)),
+                   new Cannon(14.7*u, YDIMENTION - (35*u)),
+                   new Cannon(15.4*u, YDIMENTION - (37*u)),
+                   new Cannon(18*u, YDIMENTION - (39*u)),
+                   new Cannon(20*u, YDIMENTION - (39.3*u)),
+                   new Cannon(20.5*u , YDIMENTION - (37*u)),
+                   new Cannon(20*u, YDIMENTION - (35*u)),
+                   new Cannon(19.5*u, YDIMENTION - (33*u)),
                    new Cannon(15*u, YDIMENTION - (29*u + CANNONSIZE))];
         bullets =[];
     };
@@ -463,10 +474,13 @@ var sketchProc = function(processingInstance) {
     var startScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
         STARTBUTTON.draw();
+        NORMALBUTTON.draw();
+        HARDBUTTON.draw();
+
         fill(MESSAGECOLOR[0], MESSAGECOLOR[1], MESSAGECOLOR[2]);
         textAlign(CENTER, CENTER);
         textSize(2*MESSAGESIZE);
-        text("THE TRAVELLER", XDIMENTION/2, YDIMENTION/3);
+        text("THE TRAVELLER", XDIMENTION/2, YDIMENTION/8);
 
         image(PLAYERIMAGE, XDIMENTION * (3/4), YDIMENTION*(2/3), 2*PLAYERSIZE, 2*PLAYERSIZE);
         image(BULLETIMAGE, XDIMENTION * (3/4) - PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
@@ -549,6 +563,21 @@ var sketchProc = function(processingInstance) {
             for(var i = 0; i<list.length; i++){
                 list[i].mayDraw();
             }
+        }
+    };
+
+    var configDifficult = function(){
+        if(MODE === EASY){
+            CANNONDELAY = BULLETDELAY*4;
+            CANNONBULLETSPEED=BULLETSPEED/4;
+        }
+        else if(MODE === NORMAL){
+            CANNONDELAY = BULLETDELAY*2;
+            CANNONBULLETSPEED=BULLETSPEED/2;
+        }
+        else if(MODE === HARD){
+            CANNONDELAY = BULLETDELAY;
+            CANNONBULLETSPEED=BULLETSPEED;
         }
     };
     var disableAllButtons = function(){
@@ -730,13 +759,25 @@ var sketchProc = function(processingInstance) {
 					else if(i===5){//quit
 						PLAYERSTATE = GAMEOVER;
 					}
-					else if(i===6){//start
-						startGame();
+					else if(i===6){//start easy mode
+            MODE = EASY;
+            configDifficult();
+            startGame();
 					}
 					else if(i===7){//continue
 						PLAYERSTATE = WAITTING;
 					}
+          else if(i===8){//start normal mode
+            MODE = NORMAL;
+            configDifficult();
+            startGame();
+          }
 
+          else if(i===9){
+              MODE = HARD;
+              configDifficult();
+              startGame();
+          }
 					disableAllButtons();
 
 					}
