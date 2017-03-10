@@ -847,7 +847,7 @@ var sketchProc = function(processingInstance) {
         }
         CURRENTFRAME++;
         if(CURRENTFRAME >= FPS){
-            //checkDrawables(cannons, false);
+            checkDrawables(cannons, false);
             checkDrawables(obstacles, false);
             checkDrawables(bullets, true);
             CURRENTFRAME = 0;
