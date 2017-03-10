@@ -1,10 +1,39 @@
+/**
+	The traveller: minigame by WWV
+
+	Thanks for visiting the source code, any doubt comment or suggestion please contact me
+	sending an e-mail to:
+		wwvargas2011@hotmail.com
+
+	Feel free to reuse codes found here, if you do so and desire to refer please add a link
+	to the site: www.wwv.com.
+
+	The source code is developed using Processing.js.
+
+	The objective of this game is escape of the hostile ambient arriving on the finish line
+  be cautions, barrers can easily tear you down and there also is cannons looking straight
+  to your spaceship.
+
+	Controls:
+
+		UP -> Move Forward
+		LEFT -> Turn left
+		RIGHT -> Turn right
+		CONTROL -> Shoot
+
+*/
+
+//Processig Instance
 var sketchProc = function(processingInstance) {
  with (processingInstance) {
+    //Essential variables defining screen size and the frames per second rate
     var XDIMENTION = 800;
     var YDIMENTION = 600;
     var FPS = 60;
+    //size and frames persecond definitions
     size(XDIMENTION, YDIMENTION);
     frameRate(FPS);
+    //movement related variables
     var SPEED = 3;
     var TURNINGSPEED = 1/20;
     var ATRITTION = SPEED/FPS;
@@ -12,11 +41,15 @@ var sketchProc = function(processingInstance) {
     var BULLETSPEED = 10;
     var CANNONBULLETSPEED = BULLETSPEED/2;
     var CANNONDELAY = BULLETDELAY/2;
+
+    //Objects default size definitions
     var PLAYERSIZE = XDIMENTION /10;
     var CANNONSIZE = XDIMENTION / 15;
     var BULLETSIZE = PLAYERSIZE/10;
 
+    //auxiliar variable to track the frame and control when some verification is made
     var CURRENTFRAME = 0;
+
     //Possible states within the game
     var DEAD = 0;
     var ALIVE = 1;
@@ -26,18 +59,24 @@ var sketchProc = function(processingInstance) {
     var GAMEOVER = 5;
     var WAITTING = 6;
     var PLAYERSTATE = WAITTING;
+
+    //Cannon state to be removed when the explosion animation is over
     var REMOVECANNON = 42;
 
+    //game difficults
     var EASY = 0;
     var NORMAL = 1;
     var HARD = 2;
     var MODE = NORMAL;
 
-
+    //message default size
     var MESSAGESIZE = 24;
+
+    //buttons default size
     var BUTTONWIDTH = XDIMENTION/4;
     var BUTTONHEIGHT = YDIMENTION/8;
 
+    //colors definitions
     var BACKGROUNDCOLOR = [133, 51, 181];
     var OBSTACLECOLOR = [30, 30, 30];
     var BUTTONCOLOR = [72, 0, 114];
@@ -45,7 +84,7 @@ var sketchProc = function(processingInstance) {
     var MESSAGECOLOR = [255, 255, 255];
     var SCENECOLOR = [0, 102, 204];
 
-
+    //Images definitions
     var PLAYERIMAGE = loadImage("./img/Traveller/Player.png");
     var BULLETIMAGE = loadImage("./img/Traveller/Bullet.png");
     var CANNONIMAGE = loadImage("./img/Traveller/Cannon.png");
@@ -62,21 +101,25 @@ var sketchProc = function(processingInstance) {
                      loadImage("./img/Traveller/Explosion/EXPL11.png"),
                      loadImage("./img/Traveller/Explosion/EXPL12.png")];
 
-    var COINSC = 1;
-    var PARAL = 2
+    //relative position variables to allow wider movements
     var CAMERARELATIVEX = 0;
     var CAMERARELATIVEY = 0;
 
+    //finish line position related variables, defined at generateField function
     var FINISHLINETLX;
     var FINISHLINETLY;
     var FINISHLINEBRX;
     var FINISHLINEBRY;
 
+    //arrays of used objects
     var bullets = [];
     var obstacles = [];
     var cannons = [];
+
+    //store boolean values to keys to determine whether one is pressed
     var input =[];
 
+    //Bullet Object definition
     var Bullet = function(x, y, heading, cannon){
         this.x = x;
         this.y = y;
@@ -85,7 +128,7 @@ var sketchProc = function(processingInstance) {
         this.isDrawn = true;
         this.cannon = cannon;
     };
-
+    //draw and update the position of the bullet due to its speed
     Bullet.prototype.draw = function(){
         if(this.cannon === false){
             this.x-=BULLETSPEED * cos(this.heading);
@@ -99,6 +142,9 @@ var sketchProc = function(processingInstance) {
         image(this.img, this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, BULLETSIZE, BULLETSIZE);
 
     };
+    /*verify if the bullet may or may not be drawn due to its position compared with the
+    camera relatives variables
+    */
     Bullet.prototype.mayDraw = function(index){
       var x = this.x-CAMERARELATIVEX;
       var y = this.y-CAMERARELATIVEY;
@@ -110,7 +156,7 @@ var sketchProc = function(processingInstance) {
             removeItem(bullets, index);
          }
     };
-
+    //player object definitions
     var Player = function(x, y){
         this.x = x;
         this.y = y;
@@ -124,6 +170,8 @@ var sketchProc = function(processingInstance) {
         this.index = 0;
         this.bulletOutput=[this.x+(PLAYERSIZE/2) - PLAYERSIZE*(4/5)*cos(this.heading), (this.y+PLAYERSIZE/2) - PLAYERSIZE*(4/5)*sin(this.heading)];
     };
+
+    //draw and update the position of the player
     Player.prototype.draw = function(){
         this.x -= this.xSpeed;
         this.y -= this.ySpeed;
@@ -147,6 +195,7 @@ var sketchProc = function(processingInstance) {
         }
 
     };
+    //generate a bullet in front of the player and with the same direction
     Player.prototype.shoot = function(){
         if(this.readyToShoot){
             this.readyToShoot = false;
@@ -157,6 +206,7 @@ var sketchProc = function(processingInstance) {
         }
 
     };
+    //start the explosions animation
     Player.prototype.explode = function(){
         image(EXPLOSION[this.index], this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
         this.index+=1;
@@ -165,17 +215,21 @@ var sketchProc = function(processingInstance) {
             this.index = 0;
         }
     };
+
+    //global variable of the player used througout the game
     var player = new Player(XDIMENTION/2,YDIMENTION/2);
 
     //defined here to have a definition of player
+    //determine if a bullet hitted the player
     Bullet.prototype.hitPlayer = function(){
           return(this.x>=player.x && this.x<=player.x+PLAYERSIZE && this.y>=player.y && this.y<=player.y+PLAYERSIZE);
     }
+    //determine if a bullet hitted a cannon
     Bullet.prototype.hitCannon = function(index){
             return(this.x>=cannons[index].x && this.x<=cannons[index].x+CANNONSIZE && this.y>=cannons[index].y && this.y<=cannons[index].y+CANNONSIZE);
     }
 
-
+    //cannon object definition
     var Cannon = function(x, y){
         this.x = x;
         this.y = y;
@@ -190,6 +244,7 @@ var sketchProc = function(processingInstance) {
 
     };
 
+    //draw and update cannon's direction of heading
     Cannon.prototype.draw = function(){
 
         if(this.state === DEAD){
@@ -226,6 +281,8 @@ var sketchProc = function(processingInstance) {
             }
         }
     };
+
+    //generate a bullet in front of the cannon with the same pointing direction
     Cannon.prototype.shoot = function(){
         if(this.isDrawn && this.readyToShoot){
             this.readyToShoot = false;
@@ -235,6 +292,7 @@ var sketchProc = function(processingInstance) {
         }
     };
 
+    //start explosion animation at this cannon
     Cannon.prototype.explode = function(){
       this.state = DEAD;
       image(EXPLOSION[this.index], this.x-CAMERARELATIVEX, this.y-CAMERARELATIVEY, PLAYERSIZE, PLAYERSIZE);
@@ -243,6 +301,8 @@ var sketchProc = function(processingInstance) {
           this.state = REMOVECANNON;
       }
     };
+
+    //verify if the cannon may be drawn
     Cannon.prototype.mayDraw = function(){
       var x = this.x-CAMERARELATIVEX;
       var y = this.y-CAMERARELATIVEY;
@@ -258,29 +318,8 @@ var sketchProc = function(processingInstance) {
             this.isDraw = false;
          }
     };
-    var solveSystem = function(line1, line2){
-        /*
-        ax + b = y
-        cx + d = y
 
-        ax+b = cx+d
-        (a-c)x = d-b
-        x = (d-b)/(a-c);
-
-        y = a(d-b)/(a-c) + b
-        */
-        if(line1[0] === line2[0]){
-            if(line1[1] === line2[1]){
-                return COINSC;
-            }
-            else{
-                return PARAL;
-            }
-        }
-        var x = (line2[1] - line1[1]) / (line1[0]-line2[0]);
-        var y = line1[0]*x + line1[1];
-        return [x, y];
-    };
+    //Obstacle object definition
     var Obstacle = function(x1, y1, x2, y2, x3, y3, x4, y4){
         this.x1 = x1;
         this.y1 = y1;
@@ -298,6 +337,8 @@ var sketchProc = function(processingInstance) {
                           [(y4-y3)/(x4-x3),y3-(x3*(y4-y3)/(x4-x3))],
                           [(y1-y4)/(x1-x4),y4-(x4*(y1-y4)/(x1-x4))]];
     };
+
+    //draw the obstacle
     Obstacle.prototype.draw = function(){
 
         fill(OBSTACLECOLOR[0], OBSTACLECOLOR[1], OBSTACLECOLOR[2]);
@@ -306,6 +347,18 @@ var sketchProc = function(processingInstance) {
              this.x3 - CAMERARELATIVEX, this.y3 - CAMERARELATIVEY, this.x4 - CAMERARELATIVEX, this.y4 - CAMERARELATIVEY);
     };
 
+    /*verify if a point is on the obstacle
+
+      it uses a loop with two controll variables i and j that will represent vertex
+      of the obstacle, this two variables are organized such a way that they represent
+      adjacent vertex forming a line.
+
+      The general idea them is like counting the time that a line from outside the
+      polygon to a point intercepts its sides, if the number is odd the point is
+      inside the polygon if is even no. So the algorithm bellow changes the boolean
+      value of answer on each interception
+
+    */
     Obstacle.prototype.isOn = function(x, y){
 
         var on = false;
@@ -319,6 +372,7 @@ var sketchProc = function(processingInstance) {
         return on;
 
     };
+    //determine if the player colided with tthis obstacle
     Obstacle.prototype.playerColide = function(){
         if((this.isOn(player.x+(PLAYERSIZE/4), player.y+(PLAYERSIZE/4)) || this.isOn(player.x+(3/4)*PLAYERSIZE, player.y+(PLAYERSIZE/4))||
              this.isOn(player.x+(PLAYERSIZE/4), player.y+(3/4)*PLAYERSIZE)||this.isOn(player.x+(3/4)*PLAYERSIZE, player.y+(3/4)*PLAYERSIZE))){
@@ -328,6 +382,7 @@ var sketchProc = function(processingInstance) {
             return false;
         }
     };
+    //determine if a bullet colided with this obstacle and remove it if so
     Obstacle.prototype.bulletColide = function(index){
         if(this.isOn(bullets[index].x + BULLETSIZE/2, bullets[index].y + BULLETSIZE/2)){
             removeItem(bullets, index);
@@ -335,6 +390,8 @@ var sketchProc = function(processingInstance) {
 
 
     };
+
+    //determine if an obstacle may be drawn on the screen
     Obstacle.prototype.mayDraw = function(){
         for(var i = 0; i<this.x.length; i++){
             if(this.x[i]-CAMERARELATIVEX<=2*XDIMENTION && this.x[i]-CAMERARELATIVEX>=-2*XDIMENTION &&
@@ -346,6 +403,7 @@ var sketchProc = function(processingInstance) {
         this.isDrawn = false;
     };
 
+    //Button object definitions
     var Button = function(x, y, label, bWidth, bHeight){
           this.x = x;
           this.y = y;
@@ -354,6 +412,8 @@ var sketchProc = function(processingInstance) {
           this.height = bHeight;
           this.isDrawn = false;
     };
+
+    //draw the button
     Button.prototype.draw = function(){
         fill(BUTTONCOLOR[0], BUTTONCOLOR[1], BUTTONCOLOR[2]);
         rect(this.x, this.y, this.width, this.height);
@@ -365,10 +425,12 @@ var sketchProc = function(processingInstance) {
         this.isDrawn = true;
     };
 
+    //determine if a point is on the button
     Button.prototype.isOver = function(x, y){
         return (x>=this.x && x<=this.x+this.width && y>=this.y && y<=this.y+this.height);
     };
 
+    //pause button definition
     var PauseButton = function(x, y, width, height){
         this.x = x;
         this.y = y;
@@ -376,6 +438,8 @@ var sketchProc = function(processingInstance) {
         this.height = height;
         this.isDrawn = false;
     };
+
+    //draw the pause button
     PauseButton.prototype.draw = function() {
 			fill(153, 153, 255);
       noStroke();
@@ -385,6 +449,8 @@ var sketchProc = function(processingInstance) {
 			rect(this.x+this.width/8, this.y - this.height/4, this.width/8, (1/2)*this.height);
 			this.isDrawn = true;
 		};
+
+    //determine if a point s on the pause button
 		PauseButton.prototype.isOver = function(x, y){
 			return(Math.sqrt((x-this.x)*(x-this.x) + (y - this.y)*(y-this.y))<=this.width/2);
 		};
@@ -401,8 +467,13 @@ var sketchProc = function(processingInstance) {
     var HARDBUTTON = new Button(1*BUTTONWIDTH, 5*BUTTONHEIGHT, "HARCORE", BUTTONWIDTH*(3/2), BUTTONHEIGHT);
 		var CONTINUEBUTTON = new Button(2*BUTTONWIDTH, 6*BUTTONHEIGHT, "CONTINUE", (3/2)*BUTTONWIDTH, BUTTONHEIGHT);
 
+
 		var BUTTONS = [PAUSE, PAUSECONTBUTTON, PAUSERESTBUTTON, PAUSEQUITBUTTON, AGAINBUTTON, QUITBUTTON, STARTBUTTON, CONTINUEBUTTON, NORMALBUTTON, HARDBUTTON];
 
+    /*
+        Configurate the field adding the obstacles and cannons definitions to the
+        correspondent array
+    */
     var generateField = function(){
 
         var u = XDIMENTION/8; // -> u: default unity
@@ -471,13 +542,17 @@ var sketchProc = function(processingInstance) {
                    new Cannon(20*u, YDIMENTION - (35*u)),
                    new Cannon(19.5*u, YDIMENTION - (33*u)),
                    new Cannon(15*u, YDIMENTION - (29*u + CANNONSIZE))];
+        //starts the bullet storer as empty
         bullets =[];
+
+        //definitions of the finish line position
         FINISHLINETLX = 22 *u;
         FINISHLINETLY = YDIMENTION - 40*u;
         FINISHLINEBRX = 22.5 * u;
         FINISHLINEBRY = YDIMENTION - 38*u - YDIMENTION/20;
     };
 
+    //Start scene definitions
     var startScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
         STARTBUTTON.draw();
@@ -495,7 +570,7 @@ var sketchProc = function(processingInstance) {
         image(BULLETIMAGE, XDIMENTION * (3/4) - 5*PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
         image(BULLETIMAGE, XDIMENTION * (3/4) - 7*PLAYERSIZE, YDIMENTION*(2/3) + PLAYERSIZE, BULLETSIZE*2, BULLETSIZE*2);
     };
-
+    //Dead scene definitions
     var deadScene = function(){
         background(0);
         AGAINBUTTON.draw();
@@ -507,6 +582,7 @@ var sketchProc = function(processingInstance) {
         text("YOU DEAD!!", XDIMENTION/2, YDIMENTION/2);
     };
 
+    //pause scene definitions
     var pauseScene = function(){
         background(SCENECOLOR[0],SCENECOLOR[1],SCENECOLOR[2]);
 ;
@@ -521,6 +597,7 @@ var sketchProc = function(processingInstance) {
   			text("PAUSE", XDIMENTION/2, (3/2)*BUTTONHEIGHT);
     };
 
+    //game over scene definitions
     var gameOverScene = function(){
         background(0);
         CONTINUEBUTTON.draw();
@@ -532,6 +609,7 @@ var sketchProc = function(processingInstance) {
 
     };
 
+    //winner scene definitions
     var winnerScene = function(){
       background(SCENECOLOR[0], SCENECOLOR[1], SCENECOLOR[2])
 			CONTINUEBUTTON.draw();
@@ -544,6 +622,7 @@ var sketchProc = function(processingInstance) {
     };
 
 
+    //configurate the control variables to start a new game
     var startGame = function(){
         CAMERARELATIVEY = 0;
         CAMERARELATIVEX = 0;
@@ -556,9 +635,13 @@ var sketchProc = function(processingInstance) {
         PLAYERSTATE = ALIVE;
     };
 
+    //remove a item given its index from its list
     var removeItem = function(list, index){
         list.splice(index, 1);
     };
+
+    //check which objects from a list may be drawn due to the camera relative
+    //position on the screen
 
     var checkDrawables = function(list, bullet){
         if(bullet){
@@ -573,6 +656,7 @@ var sketchProc = function(processingInstance) {
         }
     };
 
+    //configurate the control variables to each difficulty
     var configDifficult = function(){
         if(MODE === EASY){
             CANNONDELAY = BULLETDELAY*4;
@@ -587,18 +671,22 @@ var sketchProc = function(processingInstance) {
             CANNONBULLETSPEED=BULLETSPEED;
         }
     };
+
+    //disable all buttons, called when a scene is changed
     var disableAllButtons = function(){
       for(var i = 0; i<BUTTONS.length; i++){
         BUTTONS[i].isDrawn = false;
       }
     };
 
+    //update player speed when the user hits the up arrow
     var move = function(){
         player.xSpeed = SPEED * cos(player.heading);
         player.ySpeed = SPEED * sin(player.heading);
 
     };
 
+    //rotate the player when the user hits right or left arrows
     var turn = function(dir){
         if(dir === "Right"){
             player.heading = (player.heading + TURNINGSPEED)%(2*Math.PI);
@@ -609,6 +697,7 @@ var sketchProc = function(processingInstance) {
 
     };
 
+    //check any collision (player or bullet) with an obstacle
     var checkColision = function(){
         for(var obst = 0; obst<obstacles.length; obst++){
             if(obstacles[obst].playerColide()){
@@ -621,6 +710,7 @@ var sketchProc = function(processingInstance) {
         }
     };
 
+    //check if a bullet hitted something that explodes (player and cannon)
     var checkHits = function(){
         var hitted = false;
         for(var bul = 0; bul<bullets.length; bul++){
@@ -641,6 +731,7 @@ var sketchProc = function(processingInstance) {
         }
     };
 
+    //draw the finish line
     var drawFinishLine = function(){
             noStroke();
             fill(255, 255, 255);
@@ -655,6 +746,7 @@ var sketchProc = function(processingInstance) {
             rect(FINISHLINETLX - CAMERARELATIVEX, FINISHLINETLY+height*(4/5) - CAMERARELATIVEY, width/2, height/5);
     };
 
+    //draw all objects marked to draw on a list
     var drawAllObjects = function(list, cannon){
         if(cannon === false){
             for(var i = 0; i<list.length; i++){
@@ -676,6 +768,7 @@ var sketchProc = function(processingInstance) {
 
     };
 
+    //draw all the field objects except the player
     var drawField = function(){
           drawFinishLine();
           drawAllObjects(obstacles);
@@ -684,6 +777,7 @@ var sketchProc = function(processingInstance) {
 
     };
 
+    //check if the player hittedthe finish line
     var testWin = function(){
 
         if((player.x > FINISHLINETLX && player.x<FINISHLINEBRX && player.y > FINISHLINETLY && player.y<FINISHLINEBRY)||
@@ -694,6 +788,8 @@ var sketchProc = function(processingInstance) {
         }
         return false;
     };
+
+    //control the game flow when the PLAYERSTATE is ALIVE
     var gameRunning = function(){
         background(BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0], BACKGROUNDCOLOR[0]);
 
@@ -758,16 +854,19 @@ var sketchProc = function(processingInstance) {
         }
     }
     //pre-defined function called always that the user press a key
+    //used here to mark the key that was pressed
 		keyPressed = function(){
 			input[keyCode] = true;
 		};
 		//pre-defined function called always that the user release a key
+    //used here to unmark the key that was released
 		keyReleased = function(){
 			input[keyCode] = false;
 		};
 
-		//per-defined function called always that the used click with the mouse
-		mouseClicked = function(){
+		//pre-defined function called always that the used click with the mouse
+    //used here to determine if the user click on some button
+    mouseClicked = function(){
 			for(var i = 0; i<BUTTONS.length; i++){
 				if(BUTTONS[i].isDrawn && BUTTONS[i].isOver(mouseX, mouseY)){
 					if(i === 0){//pause
@@ -815,6 +914,8 @@ var sketchProc = function(processingInstance) {
 			}
 		};
 
+    //pre-defined function called FPS times a second
+    //used here to control and pass away the game flow
 
     draw = function(){
         if(PLAYERSTATE === ALIVE){
